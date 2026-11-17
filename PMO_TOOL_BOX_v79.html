@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PMO Tool Box</title>
+<style>
+:root{--bg:#f2f7fc;--panel:#fff;--blue:#8bbce8;--blue2:#e4f1fc;--blue3:#c9e2f7;--navy:#294b6b;--ink:#263746;--muted:#718397;--line:#dce8f2;--soft:#f7faff;--green:#e5f3ed;--greenink:#47765f;--amber:#fff3dc;--amberink:#936c2d;--red:#fae9e8;--shadow:0 8px 26px rgba(43,83,120,.07)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit}button{border:0;border-radius:10px;padding:9px 13px;background:var(--navy);color:#fff;cursor:pointer}button.secondary{background:var(--blue2);color:var(--navy)}button.ghost{background:transparent;color:var(--navy);border:1px solid var(--line)}button.danger{background:var(--red);color:#934e48}.small{font-size:12px;padding:6px 9px}
+header{background:#fff;border-bottom:1px solid var(--line);padding:17px 4vw;display:flex;align-items:center;justify-content:space-between;gap:15px;position:sticky;top:0;z-index:5}.brand{display:flex;gap:12px;align-items:center}.logo{width:42px;height:42px;border-radius:13px;background:var(--blue2);display:grid;place-items:center;color:var(--navy);font-size:22px}.brand h1{font-size:19px;margin:0;letter-spacing:.02em}.brand p{margin:0;color:var(--muted);font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap}
+nav{display:flex;gap:5px;flex-wrap:wrap;padding:11px 4vw;background:#f9fcff;border-bottom:1px solid var(--line)}nav button{background:transparent;color:var(--muted);padding:8px 12px}nav button.active{background:var(--blue2);color:var(--navy);font-weight:700}
+main{max-width:1180px;margin:25px auto;padding:0 22px 55px}.view{display:none}.view.active{display:block}h2{font-size:25px;letter-spacing:-.03em;margin:0 0 4px}h3{font-size:16px;margin:0 0 12px}.sub{color:var(--muted);margin:0 0 20px}.grid{display:grid;gap:15px}.two{grid-template-columns:1fr 1fr}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:17px;box-shadow:var(--shadow);min-width:0}.headrow{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:15px}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.muted{color:var(--muted)}.tag{display:inline-block;padding:3px 8px;border-radius:99px;background:var(--blue2);color:var(--navy);font-size:11px}.empty{padding:25px;text-align:center;background:var(--soft);border-radius:12px;color:var(--muted)}
+input,select,textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;background:#fff;color:var(--ink);outline:none}input:focus,select:focus,textarea:focus{border-color:var(--blue)}
+#noteDiscussion{min-height:320px;height:320px;resize:vertical;line-height:1.55}label{display:block;color:var(--muted);font-size:12px;margin:0 0 5px}.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.wide{grid-column:1/-1}
+/* Brainstorming board */
+.brain-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:24px 0 12px}
+.brain-section-head h3{margin:0 0 4px;color:var(--navy)}
+.brain-teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:12px;align-items:start}
+.brain-team{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;min-height:180px}
+.brain-team-title{padding:10px 12px;font-weight:700;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.brain-team-body{padding:9px;min-height:125px;background:#fbfdff}
+.brain-month-add{display:flex;gap:7px;align-items:center;min-width:250px}
+.brain-month-add input{max-width:170px}
+.brain-months{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 14px;align-items:stretch}
+.brain-month{flex:0 0 250px;min-height:270px;background:#f8fbfe;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.brain-month-title{padding:11px 12px;background:#dceafa;color:var(--navy);font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.brain-month-body{padding:9px;min-height:220px}
+.brain-dropzone.drag-over{outline:2px dashed var(--blue);outline-offset:-4px;background:#eef6fd}
+.brain-card{background:#fff;border:1px solid #d9e4ee;border-left:5px solid #8bbce8;border-radius:8px;padding:10px;margin:0 0 8px;box-shadow:0 3px 10px rgba(43,83,120,.06);cursor:grab}
+.brain-card:active{cursor:grabbing}
+.brain-add-card{width:100%;margin-top:4px}.brain-card .brain-card-meta{display:flex;flex-wrap:wrap;gap:5px 10px;margin-top:6px}.brain-card .brain-card-meta span{font-size:10px;color:#526579;background:#f3f7fb;padding:3px 6px;border-radius:5px}.brain-card strong{display:block;color:var(--navy);font-size:12px;margin-bottom:4px}
+.brain-card p{font-size:11px;color:#526579;margin:0 0 6px;white-space:pre-wrap}
+.brain-card small{font-size:10px;color:var(--muted)}
+.brain-card-actions{display:flex;justify-content:flex-end;gap:4px;margin-top:6px}
+.brain-card-actions button{padding:3px 6px;font-size:10px}
+.brain-risks{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:24px}.brain-risk{background:#fff;border:1px solid var(--line);border-left:5px solid #e2a15a;border-radius:9px;padding:12px;box-shadow:0 3px 10px rgba(43,83,120,.05)}.brain-risk strong{display:block;color:var(--navy);font-size:13px;margin-bottom:7px}.brain-risk p{font-size:11px;color:#526579;margin:5px 0;white-space:pre-wrap}.brain-risk-meta{display:flex;gap:6px;flex-wrap:wrap}.brain-risk-meta span{font-size:10px;background:#fff5e8;color:#805323;padding:3px 6px;border-radius:5px}.brain-empty{font-size:11px;color:#91a0ad;text-align:center;padding:20px 8px;border:1px dashed #dce6ef;border-radius:8px}
+@media(max-width:700px){.brain-section-head{align-items:flex-start;flex-direction:column}.brain-month-add{min-width:0;width:100%}.brain-month-add input{flex:1;max-width:none}}
+.notebook{background:#fff;border:1px solid var(--line);border-left:3px solid #8bbce8;border-radius:10px;padding:13px 15px;margin:10px 0;box-shadow:0 3px 12px rgba(43,83,120,.04)}.notebook p{white-space:pre-wrap;line-height:1.55;font-size:13px;color:#46596a;margin:9px 0 2px}.notebook .note-title{font-family:inherit;font-size:15px;font-weight:700;color:var(--navy)}.notebook .meta{font-size:11px;color:var(--muted);margin-top:3px}.notebook .row{align-items:flex-start}.notebook .actions{gap:6px}.meeting-action-row{display:grid;grid-template-columns:minmax(180px,2fr) minmax(140px,1fr) minmax(150px,1.2fr) minmax(130px,1fr) auto;gap:8px;align-items:end;margin:0 0 10px}
+
+.table-wrap{width:100%;overflow-x:auto}
+.data-table{width:100%;border-collapse:collapse;min-width:850px;text-align:left;font-size:13px}
+.data-table{border:1px solid var(--line);border-collapse:collapse}
+.data-table th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;background:var(--soft);padding:11px 10px;border:1px solid var(--line);white-space:nowrap}
+.data-table td{padding:11px 10px;border:1px solid var(--line);vertical-align:middle}
+.data-table tbody tr:hover{background:#f8fbfe}
+.data-table select{min-width:135px;padding:7px 8px;font-size:12px}
+.action-overdue td{background:#fff8f5}
+.action-completed td{opacity:.68}
+.action-completed td:first-child{text-decoration:line-through}
+.check-section{border:1px solid var(--line);border-radius:10px;background:#fff;margin:8px 0;overflow:hidden}.check-section h3{background:#f4f8fc;color:var(--navy);padding:8px 11px;margin:0;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:8px}.check-items{padding:2px 11px}.check-item{display:grid;grid-template-columns:minmax(180px,1fr) auto auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid #edf2f6}
+.deliverable-name{font-size:12px;font-weight:600;color:var(--ink)}
+.deliverable-status{display:flex;gap:6px;flex-wrap:wrap}
+.status-choice{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:7px;padding:4px 6px;background:#fff;color:var(--muted);font-size:10px;cursor:pointer;white-space:nowrap}
+.status-choice input{width:13px;height:13px;margin:0;accent-color:var(--navy)}
+.status-choice.selected.yes{background:#eaf5ef;border-color:#a8d1b8;color:#356b4c}
+.status-choice.selected.confirm{background:#fff5df;border-color:#ecd29b;color:#8a6728}
+.status-choice.selected.no{background:#f1f3f5;border-color:#d6dce2;color:#66727d}
+.deliverable-note{grid-column:1/-1;padding:6px 8px!important;font-size:11px!important;min-height:30px;margin:0}
+@media(max-width:760px){.check-item{grid-template-columns:1fr}.deliverable-note{grid-column:1}}.check-item:last-child{border-bottom:0}.check-item input{width:17px;height:17px;margin:2px 0 0;accent-color:#6fa6d8;flex:none}.check-item span{flex:1}.check-item.done span{text-decoration:line-through;color:#8b99a5}.progress{height:9px;background:#eaf0f5;border-radius:99px;overflow:hidden}.progress span{height:100%;display:block;background:#8bbce8;border-radius:99px;transition:width .2s}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}.stat strong{display:block;font-size:23px;color:var(--navy)}.stat small{color:var(--muted)}
+.deliverable-tools{display:flex;gap:4px}.deliverable-tools button{padding:3px 6px;font-size:15px;line-height:1;min-width:27px;height:27px}.icon-only{display:inline-flex;align-items:center;justify-content:center}.delete-icon{color:#b45b5b}.add-deliverable{padding:4px 8px;font-size:10px;white-space:nowrap}.note-toggle{grid-column:1/-1;color:var(--muted);font-size:10px;cursor:pointer}.note-wrap{grid-column:1/-1}.note-wrap textarea{margin-top:4px} @media(max-width:760px){.check-item{grid-template-columns:1fr}.deliverable-status{grid-row:2}.deliverable-tools{grid-row:3}.note-wrap{grid-column:1}}\ndialog{border:1px solid var(--line);border-radius:17px;padding:0;width:min(680px,calc(100% - 24px));background:white;color:var(--ink);box-shadow:0 20px 70px #203c5860}dialog::backdrop{background:#1e344a80}.modalhead,.modalbody,.modalfoot{padding:17px}.modalhead{border-bottom:1px solid var(--line)}.modalhead h3{margin:0}.modalfoot{border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
+@media(max-width:800px){.two{grid-template-columns:1fr}header{position:static}.headrow{align-items:flex-start;flex-direction:column}}
+@media(max-width:650px){.meeting-action-row{grid-template-columns:1fr 1fr}.meeting-action-row button{grid-column:1/-1}}\n@media(max-width:520px){#tapProjectSelect{grid-column:1/-1}main{padding:0 13px 35px;margin-top:16px}.card{padding:13px}nav{padding:8px}nav button{font-size:12px;padding:7px 9px}.brand p{display:none}.formgrid{grid-template-columns:1fr}.wide{grid-column:auto}.stats{grid-template-columns:repeat(3,1fr)}}
+.agenda-editor>summary{list-style:none;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;font-weight:600;font-size:13px;color:var(--text);padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2, #f7f8fa)}
+.agenda-editor>summary::-webkit-details-marker{display:none}
+.agenda-editor .agenda-chevron{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:5px;background:var(--surface-3, #e9edf2);font-size:19px;line-height:1;transition:transform .15s ease}
+.agenda-editor[open]>summary .agenda-chevron{transform:rotate(90deg)}
+
+/* Ações - layout refinado */
+#view-actions .headrow{align-items:center;margin-bottom:18px}
+#view-actions .filters{display:grid;grid-template-columns:minmax(240px,2fr) repeat(5,minmax(145px,1fr));gap:9px;padding:14px;background:#fff;border:1px solid var(--line);border-radius:14px;margin:0 0 16px;box-shadow:0 4px 16px rgba(43,83,120,.04)}
+#view-actions .stats{margin:0 0 16px;gap:10px}
+#view-actions .stat{padding:13px 16px;border-radius:12px}
+#view-actions .stat strong{font-size:25px}
+#view-actions .stats{grid-template-columns:repeat(5,minmax(0,1fr))}
+#view-actions .stat-overdue{background:#fff8f6;border-color:#f0d2c9}
+#view-actions .stat-overdue strong{color:#b34e3b}
+#view-actions .stat-today{background:#fffaf0;border-color:#eedfb8}
+#view-actions .stat-today strong{color:#a47720}
+#view-actions .card{padding:0;overflow:hidden}
+#view-actions .action-table{min-width:1080px;border:0;font-size:12px}
+#view-actions .action-table th{padding:12px 11px;background:#f3f7fb;position:sticky;top:0}
+#view-actions .action-table td{padding:12px 10px;vertical-align:top}
+#view-actions .action-table td:first-child{min-width:220px;max-width:300px;white-space:normal;line-height:1.45}
+#view-actions .action-table td:nth-child(2){min-width:135px;white-space:normal}
+#view-actions .action-table td:nth-child(3){min-width:135px;white-space:normal}
+#view-actions .action-table td:nth-child(4){min-width:145px}
+#view-actions .action-table td:nth-child(5){min-width:130px;white-space:normal}
+#view-actions .action-table td:nth-child(6){min-width:155px;white-space:normal}
+#view-actions .action-table td:nth-child(7){min-width:150px}
+#view-actions .action-table td:nth-child(8){min-width:210px}
+#view-actions .action-table input[type=date]{min-width:130px;padding:7px 8px;font-size:12px;border-color:#cbdbea;background:#fbfdff}
+#view-actions .action-table select{min-width:135px}
+#view-actions .action-notes{min-width:190px;min-height:58px;font-size:12px;resize:vertical}
+.action-due-section{margin:0 0 16px;padding:15px 17px;border:1px solid #f0d6c8;border-radius:13px;background:#fffaf7}
+.action-due-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.action-due-heading h3{margin:0;color:#85553f}.action-due-heading p{margin:2px 0 0;color:var(--muted);font-size:12px}
+.action-due-heading>strong{background:#f8e7df;color:#92543c;border-radius:20px;padding:4px 10px}
+.action-due-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid #f2e5de}
+.action-due-row>div{min-width:0}.action-due-row b{display:block;font-size:12px}.action-due-row small{display:block;color:var(--muted);margin-top:2px}
+@media(max-width:850px){#view-actions .filters{grid-template-columns:1fr 1fr}#view-actions .filters input{grid-column:1/-1}#view-actions .stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:520px){#view-actions .stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Indicador único de urgência: maior contraste visual */
+#view-actions .stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+#view-actions .stat-urgent{background:#b42318;border:1px solid #8f1d15;box-shadow:0 5px 16px rgba(180,35,24,.22)}
+#view-actions .stat-urgent strong{color:#fff;font-size:29px}
+#view-actions .stat-urgent small{color:#fff;font-weight:700;letter-spacing:.01em}
+@media(max-width:850px){#view-actions .stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){#view-actions .stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+</style>
+</head>
+<body>
+<header>
+ <div class="brand"><div class="logo" aria-hidden="true"><svg viewBox="0 0 32 32" width="25" height="25" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="4.5" y="5" width="15" height="11" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M8 9h8M8 12.5h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="13" y="19" width="14.5" height="8" rx="2.3" fill="currentColor" opacity=".16" stroke="currentColor" stroke-width="1.8"/><path d="M16.5 23h7M10 16v7h3M19.5 16v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="23" r="1.6" fill="currentColor"/></svg></div><div><h1>PMO Tool Box</h1><p>Ferramentas de apoio à gestão de projetos</p></div></div>
+ <div class="actions"><button class="ghost small" onclick="exportBackup()">Exportar backup</button><button class="ghost small" onclick="document.getElementById('importFile').click()">Importar backup</button><input id="importFile" type="file" accept="application/json" hidden onchange="importBackup(event)"></div>
+</header>
+<nav>
+ <button class="active" data-view="notes" onclick="showView('notes',this)">Ata Reuniões</button>
+ <button data-view="actions" onclick="showView('actions',this)">Ações</button>
+</nav>
+<main>
+<section id="view-notes" class="view active">
+ <div class="headrow"><div><h2>Anotações</h2><p class="sub">Registre reuniões e alinhamentos dos projetos no formato de ata.</p></div><button onclick="openNote()">＋ Nova ata de reunião</button></div>
+ <div class="filters"><input id="noteSearch" placeholder="Buscar por assunto, tema ou conteúdo..." oninput="renderNotes()"><input id="noteDateFilter" type="date" onchange="renderNotes()" style="max-width:180px"><button class="ghost small" onclick="clearNoteDate()">Todas as datas</button></div>
+ <div class="card" style="margin-bottom:15px">
+  <div class="row" style="align-items:center"><div><h3 style="margin:0">Agendas fixas</h3><p class="muted" style="margin:3px 0 0;font-size:12px">Gerencie os tipos de reunião utilizados nas ATAs.</p></div></div>
+  <details id="agendaEditorDetails" class="agenda-editor" style="margin-top:10px">
+   <summary><span class="agenda-chevron">›</span> Cadastrar / editar agenda</summary>
+   <div class="formgrid" style="margin-top:12px">
+    <input type="hidden" id="agendaEditId">
+    <div><label for="agendaEditName">Nome da agenda</label><input id="agendaEditName" placeholder="Ex.: Reunião Semanal do PMO"></div>
+    <div class="wide"><label for="agendaEditDescription">Descrição da agenda</label><textarea id="agendaEditDescription" rows="2" placeholder="Descreva o objetivo e o escopo desta reunião"></textarea></div>
+    <div class="wide" style="display:flex;gap:8px"><button type="button" class="primary small" onclick="saveAgendaEditor()">Salvar agenda</button><button type="button" class="ghost small" onclick="newAgendaEditor()">Limpar / nova</button></div>
+   </div>
+  </details>
+  <div id="fixedAgendaList" style="margin-top:10px"></div>
+ </div>
+ <div id="notesList"></div>
+</section>
+
+
+
+<section id="view-actions" class="view">
+ <div class="headrow"><div><h2>Ações</h2><p class="sub">Acompanhe os encaminhamentos registrados nas atas de reunião, com responsáveis, prazos e situação.</p></div><button type="button" class="primary" onclick="exportPendingActionsPDF()">Exportar pendentes por responsável (PDF)</button></div>
+ <div class="filters">
+  <input id="actionSearch" placeholder="Buscar ação, responsável ou reunião..." oninput="renderActions()">
+  <select id="actionStatusFilter" onchange="renderActions()" style="max-width:190px"><option value="">Todas as situações</option><option value="Pendente">Pendente</option><option value="Concluída">Concluída</option></select>
+  <select id="actionAgendaFilter" onchange="renderActions()" style="max-width:210px"><option value="">Todas as agendas</option></select>
+  <select id="actionOwnerFilter" onchange="renderActions()" style="max-width:190px"><option value="">Todos os responsáveis</option></select>
+  <select id="actionSubjectFilter" onchange="renderActions()" style="max-width:210px"><option value="">Todos os assuntos</option></select>
+  <select id="actionWeekFilter" onchange="renderActions()" style="max-width:210px"><option value="">Todos os prazos</option><option value="week">Vencem nesta semana</option></select>
+ </div>
+ <div class="stats">
+  <div class="stat"><strong id="actionTotal">0</strong><small>Total de ações</small></div>
+  <div class="stat"><strong id="actionOpen">0</strong><small>Em aberto</small></div>
+  <div class="stat"><strong id="actionDone">0</strong><small>Concluídas</small></div>
+  <div class="stat stat-urgent"><strong id="actionDueCount">0</strong><small>Atrasadas ou vencem hoje</small></div>
+ </div>
+ <div class="card"><div id="actionsList"></div></div>
+</section>
+
+</main>
+
+
+
+<dialog id="noteDialog">
+ <div class="modalhead"><h3 id="noteDialogTitle">Nova ata de reunião</h3></div>
+ <form id="noteForm" onsubmit="saveNote(event)">
+  <div class="modalbody"><input type="hidden" id="noteId">
+   <div class="formgrid">
+    <div class="wide"><label>Assunto / título da reunião</label><input id="noteTitle" required placeholder="Ex.: Alinhamento do projeto"></div>
+    <div><label>Data</label><input id="noteDate" type="date" required></div>
+    <div><label>Horário de início</label><input id="noteTime" type="time"></div>
+    <div><label>Horário de fim</label><input id="noteEndTime" type="time"></div>
+    <div class="wide"><label for="noteFixedAgenda">Agenda fixa</label><select id="noteFixedAgenda" required onchange="showAtaAgendaDescription()"></select><p id="noteFixedAgendaDescription" class="muted" style="margin:4px 0 0">Vincula esta ATA e todas as ações registradas nela a uma agenda recorrente.</p></div>
+    <div class="wide"><label>Tema</label><input id="noteProject" placeholder="Digite o tema da reunião"></div>
+    <div class="wide"><label>Participantes</label><textarea id="noteParticipants" rows="2" placeholder="Informe os participantes"></textarea></div>
+    <div class="wide"><label>Objetivo / pauta</label><textarea id="noteAgenda" rows="3" placeholder="Objetivo e assuntos previstos"></textarea></div>
+    <div class="wide"><label>Discussões / principais pontos abordados</label><div id="meetingDiscussionBlocks"></div><button type="button" class="secondary small" onclick="addDiscussionBlock()">＋ Adicionar assunto</button><p class="muted">Cadastre cada assunto em um bloco, com título e descrição.</p></div>
+    <div class="wide"><label>Decisões tomadas</label><textarea id="noteDecisions" rows="3" placeholder="Registre as decisões acordadas"></textarea></div>
+    <div class="wide"><label>Ações / encaminhamentos</label><div id="meetingActions"></div><button type="button" class="secondary small" onclick="addMeetingActionRow()">＋ Adicionar ação</button></div>
+   </div>
+  </div>
+  <div class="modalfoot"><button type="button" class="ghost" onclick="closeNote()">Cancelar</button><button type="submit">Salvar ata</button></div>
+ </form>
+</dialog>
+<script>
+const KEY='pmoToolBox';
+const sourceChecklist=[["1. Máquinas, equipamentos e automação","Aquisição, instalação, integração e adequação de máquinas e periféricos.",[["Máquina / equipamento principal adquirido e instalado","Equipamento instalado e em condições ideais de uso."],["Linha ou célula produtiva instalada","Linha completa instalada e disponível para operação."],["Sistema de automação da célula instalado","Conjunto de automação instalado e em condições ideais de uso."],["Robôs / equipamentos SCARA instalados","Equipamentos SCARA instalados nas unidades previstas."],["Peneira vibratória / rotativa instalada","Peneira instalada e, quando aplicável, automatizada."],["Sistema de alimentação automática instalado","Sistema instalado e adequado à capacidade requerida."],["Sistema de retirada de material e envase instalado","Sistema instalado e em operação na linha prevista."],["Sistema de abastecimento automático instalado","Sistema de abastecimento instalado e disponível."],["Sistema de secagem de matéria-prima instalado","Secador instalado e disponível para utilização."],["Sistema de indexação de insertos instalado","Sistema instalado e apto à operação da célula."],["Dispositivo de corte / periférico instalado","Dispositivo instalado e equipe de produção treinada."],["Retrofit / adequação de equipamento concluído","Equipamento adequado e em condições ideais de uso."],["Reposicionamento e reinstalação de máquinas concluídos","Máquinas reposicionadas conforme layout e disponíveis para operação."],["Equipamentos de movimentação / içamento instalados","Pórtico ou dispositivo adquirido e instalado."],["Impressora / rotuladora instalada","Equipamento instalado e apto à aplicação ou gravação de identificação."],["Acessórios e kits dos equipamentos disponibilizados","Kit e acessórios entregues e instalados no equipamento."]]],["2. Layout, obras e infraestrutura","Preparação física da área, adequações civis e instalações de utilidades.",[["Layout da área atualizado e validado","Layout atualizado e disponibilizado para a unidade."],["Adequação de infraestrutura elétrica","Infraestrutura elétrica adequada para instalação e operação."],["Adequação de infraestrutura hidráulica / água","Sistema hidráulico adequado e em condições de operação."],["Adequação de infraestrutura pneumática / ar comprimido","Rede de ar comprimido adequada aos equipamentos previstos."],["Infraestrutura de alimentação de matéria-prima adequada","Infraestrutura de alimentação de MP adequada à linha."],["Sistema de água gelada / chiller instalado","Chiller instalado, com tubulações de água gelada e retorno adequadas."],["Sistema de retorno de água instalado","Sistema de retorno de água instalado e funcionando."],["Reservatórios preparados e segregados","Reservatórios de água quente e fria separados conforme necessidade."],["Tubulações e pontos de utilidades adequados","Pontos de água e ar adequados aos equipamentos e máquinas."],["Obra civil / alpendre / varanda concluída","Construção ou ampliação executada conforme escopo aprovado."],["Piso, bases e área de instalação preparados","Área preparada e liberada para instalação."],["Portões, acessos e fluxo de movimentação adequados","Acessos e portões adequados ao fluxo de movimentação."],["Sala / área de apoio construída e disponível","Sala ou área de apoio construída e disponível para uso."],["Adequação 5S e identificação visual da área","Área com demarcações, identificação e padrão visual implementados."]]],["3. Processo, capacidade e desempenho","Entregas ligadas à capacidade produtiva, produtividade, OEE e validação.",[["Capacidade produtiva do equipamento validada","Equipamento operando com o output / capacidade definido no TAP."],["Capacidade da linha / célula ampliada","Capacidade produtiva atingida conforme meta aprovada."],["Estudo de capabilidade da linha concluído","Estudo de capabilidade disponibilizado."],["Validação produtiva da máquina / célula concluída","Produção de validação realizada e resultados aprovados."],["Teste de funcionamento / comissionamento concluído","Equipamento testado e em condições de operação."],["Problema de processo / degasagem corrigido","Processo operando sem o problema identificado."],["Planos de manutenção preventiva revisados","Planos de preventiva dos equipamentos revisados."],["Fila de manutenções preventivas regularizada","Preventivas pendentes realizadas."],["Cronograma de manutenção / cromagem definido","Cronograma de execução estabelecido e disponibilizado."],["Rotina de monitoramento de processo implementada","Rotina de monitoramento dos parâmetros definida e implementada."]]],["4. Produtos, moldes e qualidade","Desenvolvimento, adequação, homologação e liberação de produtos e ferramentais.",[["Moldes fabricados / adquiridos e validados","Moldes construídos e validados para produção."],["Moldes existentes reformados / adequados","Moldes alterados e aprovados para produção."],["Produtos aprovados pela Qualidade","Produtos aprovados após avaliações dimensionais, funcionais e ensaios aplicáveis."],["Lote piloto / lote de validação produzido","Lote de validação produzido e disponibilizado para avaliação."],["Estoque de lançamento dos produtos disponibilizado","Estoque de lançamento disponível no CD."],["Desenhos técnicos dos produtos (2D e 3D) atualizados","Modelamento e desenhos 2D dos produtos atualizados."],["Fichas técnicas de produtos elaboradas","Fichas técnicas criadas e disponibilizadas às áreas responsáveis."],["Planos de controle dos produtos cadastrados","Planos de controle dos SKUs cadastrados."],["Documentação / ficha técnica da Qualidade atualizada","Documentos e FTQs criados ou revisados e disponibilizados."],["Padrão de embalagem e armazenamento definido","Padrões de embalagem e armazenamento cadastrados."],["Calibradores e instrumentos de medição disponibilizados","Calibradores e instrumentos disponibilizados para Produção e Qualidade."],["Artes de embalagens e etiquetas atualizadas","Layouts de embalagens e etiquetas alterados conforme padrão aprovado."],["Padrão de impressão / identificação definido","Padrão de impressão e identificação de etiquetas definido."]]],["5. Sistemas, cadastros e dados","Integrações, apontamentos, cadastros de produção e manutenção.",[["Apontamento de produção via MII implantado","Equipamentos integrados ao MII e disponíveis para apontamento."],["Integração MII e SAP validada","Comunicação entre MII e SAP validada."],["Cadastros de produtos atualizados","Cadastros disponíveis para apontamento e alinhados às fichas vigentes."],["Cadastros de produção / roteiros atualizados","Centros de trabalho e roteiros disponíveis conforme nova condição produtiva."],["Cadastro de equipamentos no ambiente PM / SAP","Equipamentos cadastrados ou atualizados no ambiente de manutenção."],["Cadastro de moldes no ambiente PM / SAP","Cadastros de moldes atualizados no ambiente de manutenção."],["Cadastro de peças sobressalentes críticas","Spare parts mapeadas e cadastradas no sistema de manutenção."],["Receitas / parâmetros de gravação cadastrados","Receitas de gravação disponíveis para os produtos previstos."],["Documentação e instruções de trabalho no Bizagi","ITs e documentos de operação disponibilizados no Bizagi."],["Dados mestres e especificações atualizados","Dados mestres, fichas e especificações revisados e disponíveis."]]],["6. Engenharia, documentação e segurança","Documentação técnica, desenhos, laudos e requisitos de segurança.",[["Documentação técnica dos equipamentos disponibilizada","Manuais e documentos técnicos entregues à equipe de manutenção."],["Book de moldes atualizado","Book de moldes atualizado e disponibilizado para ferramentarias."],["Fichas de processo elaboradas / atualizadas","Fichas de processo disponibilizadas para produção."],["Documentação de processo e qualidade disponibilizada","Documentos disponibilizados às áreas envolvidas."],["Documentação de segurança / apreciação de risco emitida","Laudos e documentos de segurança disponibilizados à equipe responsável."],["Adequação NR-12 / proteções de segurança concluída","Laudo NR-12 e análise de risco emitidos, quando aplicável."],["Desenhos e layout técnico atualizados","Desenhos técnicos e layout atualizados e disponibilizados."],["Instruções de operação e manutenção elaboradas","Instruções de trabalho disponibilizadas para operação e manutenção."],["Especificação técnica / padrão revisado","Documento de especificação atualizado conforme padrão aprovado."]]],["7. Pessoas, treinamento e entrega técnica","Capacitação das equipes e transferência para operação e manutenção.",[["Treinamento operacional realizado","Equipe de produção treinada sobre equipamentos e processo."],["Treinamento de manutenção realizado","Equipe de manutenção treinada para manutenção dos equipamentos."],["Capacitação da equipe de Qualidade realizada","Equipe de Qualidade treinada sobre novos produtos e controles."],["Capacitação da ferramentaria realizada","Equipe de ferramentaria treinada sobre moldes e ferramentais."],["Treinamento com fabricante / fornecedor realizado","Treinamento técnico realizado com especialista ou fabricante."],["Capacitação em setup rápido realizada","Ferramenteiros treinados para aplicação do setup rápido."],["Entrega técnica de moldes realizada","Entregas técnicas dos moldes realizadas."],["Equipe treinada em autocontrole / qualidade","Equipe de produção treinada sobre autocontrole dos produtos."],["Equipe treinada em apontamentos / sistemas","Equipe treinada sobre o fluxo correto de apontamentos."]]],["8. Logística, materiais e abastecimento","Materiais, contentores, armazenamento, sobressalentes e movimentação.",[["Contentores / buffers disponibilizados","Quantidade prevista de contentores disponível para uso na unidade."],["Sistema de abastecimento de matéria-prima implantado","Sistema instalado e adequado à capacidade requerida."],["Reservatório de retirada de material instalado","Reservatório instalado e disponível para operação."],["Peças sobressalentes disponibilizadas","Peças previstas listadas e disponibilizadas para PCM / manutenção."],["Área de armazenamento preparada","Materiais e resinas alocados em local adequado e coberto, quando aplicável."],["Porta-bags / dispositivos de abastecimento instalados","Dispositivos adquiridos e instalados para abastecimento de matéria-prima."],["Identificação e organização de equipamentos implementadas","Equipamentos identificados conforme padrão da unidade."],["Desmobilização / retirada de equipamento concluída","Equipamento retirado e armazenado conforme definição do projeto."]]]];
+const checklist=[["1. Produto","Definições, características, requisitos e especificações do produto a ser desenvolvido.",[]],["2. Processo","Capacidade, desempenho, validação e estabilidade do processo produtivo.",[...[30, 31, 32, 33, 34, 35, 39]].map(i=>sourceChecklist.flatMap(g=>g[2])[i])],["3. Equipamentos","Máquinas, periféricos, ferramentais e equipamentos de movimentação.",[...[0, 1, 4, 10, 11, 12, 13, 14, 15, 40, 41, 88]].map(i=>sourceChecklist.flatMap(g=>g[2])[i])],["4. Ferramentais","Moldes, cabeçotes, dispositivos, calibradores, books e recursos de ferramentaria.",[
+ ["Moldes fabricados / adquiridos e validados","Moldes construídos e validados para produção."],
+ ["Moldes existentes reformados / adequados","Moldes alterados e aprovados para produção."],
+ ["Ferramentais de bolsa fabricados e disponibilizados","Ferramentais de bolsa fabricados e disponibilizados para as unidades e bitolas previstas."],
+ ["Cabeçotes e ferramentais de extrusão disponibilizados","Cabeçotes e ferramentais fabricados, validados e disponíveis para produção das bitolas previstas."],
+ ["Dispositivos, gabaritos e acessórios de moldes disponibilizados","Dispositivos e acessórios previstos disponibilizados e aptos ao uso na ferramentaria ou produção."],
+ ["Calibradores e CAPs disponibilizados","Calibradores e CAPs disponibilizados para validação de produtos e uso da Produção e Qualidade."],
+ ["Book de moldes atualizado","Book de moldes atualizado e disponibilizado para ferramentarias."],
+ ["Cadastro de moldes no SAP PM atualizado","Cadastros de moldes atualizados no ambiente de manutenção SAP."],
+ ["Planos de manutenção preventiva de moldes cadastrados","Preventivas de moldes cadastradas no ambiente de manutenção SAP."],
+ ["Try-out de moldes e ferramentais realizado","Try-out realizado com a equipe responsável e processo validado para produção."],
+ ["Entrega técnica de moldes realizada","Entregas técnicas dos moldes realizadas."],
+ ["Capacitação da equipe de ferramentaria realizada","Equipe de ferramentaria treinada sobre moldes e ferramentais."],
+ ["Localização e transferência de moldes controladas","Moldes transferidos para a unidade de destino e localização atualizada nos controles aplicáveis."]
+]],["5. Periféricos","Equipamentos auxiliares e acessórios de apoio à operação das máquinas e linhas produtivas.",[]],["6. Automação","Sistemas automatizados, robôs, alimentação e integração operacional.",[...[2, 3, 5, 6, 7, 8, 9, 82, 86]].map(i=>sourceChecklist.flatMap(g=>g[2])[i])],["7. Infraestrutura","Instalações elétricas, hidráulicas, pneumáticas, redes e utilidades necessárias à operação.",[...[16, 17, 18, 19, 20, 21, 22, 23, 24]].map(i=>sourceChecklist.flatMap(g=>g[2])[i])],["8. Civil","Obras, construções, adequações físicas, pisos, acessos e preparação civil das áreas.",[...[25, 26, 27, 28, 29]].map(i=>sourceChecklist.flatMap(g=>g[2])[i])],["9. Qualidade","Aprovação de produtos, controles, instrumentos e padrões da qualidade.",[...[42, 43, 47, 48, 50, 51, 52, 66, 79]].map(i=>sourceChecklist.flatMap(g=>g[2])[i])],["10. Cadastros produtivos","Apontamentos, integração produtiva, produtos, roteiros, receitas e dados mestres.",[...[53, 54, 55, 56, 60, 62]].map(i=>sourceChecklist.flatMap(g=>g[2])[i])],["11. Cadastros manutenção","Cadastros e rotinas estruturadas no ambiente de manutenção.",[...[36, 37, 38, 57, 58, 59, 84]].map(i=>sourceChecklist.flatMap(g=>g[2])[i])],["12. Logística e armazenamento","Abastecimento, armazenagem, materiais, sobressalentes e identificação.",[...[44, 49, 81, 83, 85, 87]].map(i=>sourceChecklist.flatMap(g=>g[2])[i])],["13. Documentação técnica","Desenhos, fichas, instruções e documentação técnica de processo e equipamentos.",[...[45, 46, 61, 63, 64, 65, 69, 70, 71]].map(i=>sourceChecklist.flatMap(g=>g[2])[i])],["14. Documentação de segurança","Documentos legais e requisitos de segurança de máquinas e instalações.",[...[67, 68]].map(i=>sourceChecklist.flatMap(g=>g[2])[i])],["15. Treinamentos","Capacitação das equipes e transferência de conhecimento.",[...[72, 73, 74, 75, 76, 77, 78, 80]].map(i=>sourceChecklist.flatMap(g=>g[2])[i])]];
+let db=loadDB();
+function loadDB(){try{return {...{notes:[],agendas:[],tap:{checks:{},topicNotes:{}},planning:{meta:{},actions:[],schedule:[]}},...(JSON.parse(localStorage.getItem(KEY))||{})}}catch(e){return{notes:[],agendas:[],tap:{checks:{},topicNotes:{}},planning:{meta:{},actions:[],schedule:[]}}}}
+function saveDB(){
+ if(db.activeTapProjectId&&Array.isArray(db.tapProjects)){
+  const active=db.tapProjects.find(p=>p.id===db.activeTapProjectId);
+  if(active){active.name=db.tap.project||active.name;active.data=JSON.parse(JSON.stringify(db.tap||{}));}
+ }
+ localStorage.setItem(KEY,JSON.stringify(db));
+}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function showView(name,btn){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById('view-'+name).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));btn.classList.add('active')}
+
+function ensureFixedAgendas(){
+ if(!Array.isArray(db.agendas))db.agendas=[];
+ if(!db.agendas.length)db.agendas=[{id:'agenda_'+uid(),name:'Reunião Semanal do PMO',active:true}];
+ db.agendas.forEach(a=>{if(a.active===undefined)a.active=true;if(typeof a.description!=='string')a.description='';});
+ // Keep historical ATAs visible by assigning unclassified records to the first agenda.
+ db.notes.forEach(n=>{if(!n.agendaId)n.agendaId=db.agendas[0].id;});
+}
+function activeAgendas(){ensureFixedAgendas();return db.agendas.filter(a=>a.active!==false);}
+function renderAgendaSelectors(selectedNoteId=''){
+ ensureFixedAgendas();
+ const options=activeAgendas().map(a=>`<option value="${esc(a.id)}">${esc(a.name)}</option>`).join('');
+ const noteSel=document.getElementById('noteFixedAgenda');
+ if(noteSel){noteSel.innerHTML=options||'<option value="">Cadastre uma agenda primeiro</option>';noteSel.value=selectedNoteId&&activeAgendas().some(a=>a.id===selectedNoteId)?selectedNoteId:(activeAgendas()[0]?.id||'');showAtaAgendaDescription();}
+ const prep=document.getElementById('prepAgenda');
+ if(prep){const old=prep.value;prep.innerHTML=options||'<option value="">Nenhuma agenda ativa</option>';prep.value=activeAgendas().some(a=>a.id===old)?old:(activeAgendas()[0]?.id||'');}
+ renderFixedAgendaList();
+}
+function renderFixedAgendaList(){
+ const el=document.getElementById('fixedAgendaList');if(!el)return;ensureFixedAgendas();
+ el.innerHTML=db.agendas.length?`<div class="table-wrap"><table class="data-table" style="min-width:560px"><thead><tr><th>Agenda / descrição</th><th>Situação</th><th>ATAs</th><th>Ações</th><th>Gerenciar</th></tr></thead><tbody>${db.agendas.map(a=>{const notes=db.notes.filter(n=>n.agendaId===a.id);const count=notes.reduce((s,n)=>s+(n.actionsList||[]).length,0);return `<tr><td><strong>${esc(a.name)}</strong><div class="muted" style="font-size:11px;white-space:normal">${esc(a.description||'Sem descrição')}</div></td><td>${a.active===false?'<span class="tag">Inativa</span>':'<span class="tag" style="background:#eaf5ef;color:#356b4c">Ativa</span>'}</td><td>${notes.length}</td><td>${count}</td><td><button type="button" class="ghost small" onclick="editAgenda('${esc(a.id)}')">Editar</button></td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">Nenhuma agenda cadastrada.</div>';
+}
+function newAgendaEditor(){
+ const editor=document.getElementById('agendaEditorDetails');if(editor)editor.open=true;
+ const id=document.getElementById('agendaEditId');if(id)id.value='';
+ const name=document.getElementById('agendaEditName');if(name)name.value='';
+ const desc=document.getElementById('agendaEditDescription');if(desc)desc.value='';
+}
+function editAgenda(id){
+ ensureFixedAgendas();const a=db.agendas.find(x=>String(x.id)===String(id));if(!a)return;
+ const editor=document.getElementById('agendaEditorDetails');if(editor)editor.open=true;
+ document.getElementById('agendaEditId').value=a.id;
+ document.getElementById('agendaEditName').value=a.name||'';
+ document.getElementById('agendaEditDescription').value=a.description||'';
+ document.getElementById('agendaEditName').focus();
+}
+function saveAgendaEditor(){
+ ensureFixedAgendas();
+ const id=document.getElementById('agendaEditId').value;
+ const name=document.getElementById('agendaEditName').value.trim();
+ const description=document.getElementById('agendaEditDescription').value.trim();
+ if(!name){alert('Informe o nome da agenda.');document.getElementById('agendaEditName').focus();return;}
+ if(db.agendas.some(a=>String(a.id)!==String(id)&&a.name.trim().toLowerCase()===name.toLowerCase())){alert('Já existe uma agenda com esse nome.');return;}
+ let a=id?db.agendas.find(x=>String(x.id)===String(id)):null;
+ if(!a){a={id:'agenda_'+uid(),active:true};db.agendas.push(a);}
+ a.name=name;a.description=description;a.active=a.active!==false;
+ saveDB();document.getElementById('agendaEditId').value=a.id;
+ renderAgendaSelectors(a.id);renderNotes();renderActions();renderMeetingPrep();
+}
+function showAtaAgendaDescription(){
+ const id=document.getElementById('noteFixedAgenda')?.value;
+ const a=db.agendas.find(x=>String(x.id)===String(id));
+ const el=document.getElementById('noteFixedAgendaDescription');
+ if(el)el.textContent=a?.description||'Esta ATA e as ações registradas nela ficarão vinculadas à agenda selecionada.';
+}
+function addFixedAgenda(){newAgendaEditor();}
+
+function renameFixedAgenda(){
+ ensureFixedAgendas();const id=document.getElementById('prepAgenda')?.value;const a=db.agendas.find(x=>x.id===id);if(!a)return;
+ const name=prompt('Novo nome da agenda:',a.name);if(!name||!name.trim())return;
+ if(db.agendas.some(x=>x.id!==id&&x.name.trim().toLowerCase()===name.trim().toLowerCase())){alert('Já existe uma agenda com esse nome.');return;}
+ a.name=name.trim();saveDB();renderAgendaSelectors(id);renderNotes();renderActions();renderMeetingPrep();
+}
+function toggleFixedAgenda(){
+ ensureFixedAgendas();const id=document.getElementById('prepAgenda')?.value;const a=db.agendas.find(x=>x.id===id);if(!a)return;
+ if(a.active!==false){if(activeAgendas().length<=1){alert('Mantenha pelo menos uma agenda ativa.');return;}a.active=false;}
+ else a.active=true;
+ saveDB();renderAgendaSelectors(a.active?a.id:'');renderMeetingPrep();
+}
+
+function openNote(id=''){
+ const n=db.notes.find(x=>String(x.id)===String(id))||{};
+ document.getElementById('noteId').value=n.id||'';
+ document.getElementById('noteTitle').value=n.title||'';
+ document.getElementById('noteDate').value=n.date||new Date().toISOString().slice(0,10);
+ document.getElementById('noteTime').value=n.time||'';
+ document.getElementById('noteEndTime').value=n.endTime||'';
+ renderAgendaSelectors(n.agendaId||'');
+ document.getElementById('noteProject').value=n.project||'';
+ document.getElementById('noteParticipants').value=n.participants||'';
+ document.getElementById('noteAgenda').value=n.agenda||n.body||'';
+ document.getElementById('meetingDiscussionBlocks').innerHTML='';
+ const discussionBlocks=Array.isArray(n.discussionBlocks)&&n.discussionBlocks.length?n.discussionBlocks:[{title:'',text:n.discussion||''}];
+ discussionBlocks.forEach(x=>addDiscussionBlock(x));
+ document.getElementById('noteDecisions').value=n.decisions||'';
+ const actions=Array.isArray(n.actionsList)&&n.actionsList.length?n.actionsList:[{description:n.actions||'',responsible:n.responsible||'',deadline:n.deadline||''}];
+ document.getElementById('meetingActions').innerHTML='';
+ actions.forEach((x,i)=>addMeetingActionRow(x));
+ document.getElementById('noteDialogTitle').textContent=id?'Editar ata de reunião':'Nova ata de reunião';
+ document.getElementById('noteDialog').showModal();
+}
+function closeNote(){document.getElementById('noteDialog').close()}
+let meetingActionCounter=0;
+function addMeetingActionRow(data={}){
+ const wrap=document.getElementById('meetingActions');if(!wrap)return;
+ const i=meetingActionCounter++;
+ const row=document.createElement('div');row.className='meeting-action-row';row.dataset.actionId=data.id||uid();
+ row.innerHTML=`<div><label>Ação</label><input data-field="description" placeholder="Descreva a ação" value="${esc(data.description||'')}"></div><div><label>Responsável</label><input data-field="responsible" placeholder="Responsável" value="${esc(data.responsible||'')}"></div><div><label>Assunto relacionado</label><select data-field="subjectId"><option value="">Não vinculado</option></select></div><div><label>Prazo</label><input type="date" data-field="deadline" value="${esc(data.deadline||'')}"></div><button type="button" class="ghost small" onclick="this.closest('.meeting-action-row').remove()">Remover</button>`;
+ wrap.appendChild(row);refreshActionSubjectOptions();
+ const subjectSelect=row.querySelector('[data-field="subjectId"]');subjectSelect.value=data.subjectId||'';
+}
+function addDiscussionBlock(data={}){
+ const wrap=document.getElementById('meetingDiscussionBlocks');if(!wrap)return;
+ const row=document.createElement('div');row.className='meeting-discussion-block';row.dataset.subjectId=data.id||uid();
+ row.style.cssText='border:1px solid var(--line);border-radius:8px;padding:12px;margin:0 0 10px;background:#fff';
+ row.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px"><strong style="font-size:12px;color:var(--blue)">ASSUNTO</strong><button type="button" class="ghost small" onclick="removeDiscussionBlock(this)">Remover</button></div><div style="margin-bottom:8px"><label>Título do assunto</label><input data-field="title" oninput="refreshActionSubjectOptions()" placeholder="Ex.: Nova linha corrugado" value="${esc(data.title||'')}"></div><div><label>Descrição / texto</label><textarea data-field="text" rows="3" placeholder="Registre os pontos discutidos sobre este assunto">${esc(data.text||'')}</textarea></div>`;
+ wrap.appendChild(row);refreshActionSubjectOptions();
+}
+function removeDiscussionBlock(button){button.closest('.meeting-discussion-block')?.remove();refreshActionSubjectOptions()}
+function refreshActionSubjectOptions(){
+ const subjects=[...document.querySelectorAll('#meetingDiscussionBlocks .meeting-discussion-block')].map((row,i)=>({id:row.dataset.subjectId,title:row.querySelector('[data-field="title"]')?.value.trim()||'Assunto '+(i+1)}));
+ document.querySelectorAll('#meetingActions .meeting-action-row select[data-field="subjectId"]').forEach(select=>{
+  const selected=select.value;
+  select.innerHTML='<option value="">Não vinculado</option>'+subjects.map(x=>`<option value="${esc(x.id)}">${esc(x.title)}</option>`).join('');
+  select.value=subjects.some(x=>x.id===selected)?selected:'';
+ });
+}
+function saveNote(e){
+ e.preventDefault();const id=document.getElementById('noteId').value;
+ const previousActions=db.notes.find(x=>String(x.id)===String(id))?.actionsList||[];
+ const actionsList=[...document.querySelectorAll('#meetingActions .meeting-action-row')].map(row=>{const actionId=row.dataset.actionId||uid();const previous=previousActions.find(x=>String(x.id)===String(actionId));return {id:actionId,description:row.querySelector('[data-field="description"]').value.trim(),responsible:row.querySelector('[data-field="responsible"]').value.trim(),subjectId:row.querySelector('[data-field="subjectId"]').value,deadline:row.querySelector('[data-field="deadline"]').value,notes:previous?.notes||''}}).filter(x=>x.description||x.responsible||x.deadline);
+ const discussionBlocks=[...document.querySelectorAll('#meetingDiscussionBlocks .meeting-discussion-block')].map(row=>({id:row.dataset.subjectId||uid(),title:row.querySelector('[data-field="title"]').value.trim(),text:row.querySelector('[data-field="text"]').value.trim()})).filter(x=>x.title||x.text);
+ const n={id:id||uid(),agendaId:document.getElementById('noteFixedAgenda').value,title:document.getElementById('noteTitle').value.trim(),date:document.getElementById('noteDate').value,time:document.getElementById('noteTime').value,endTime:document.getElementById('noteEndTime').value,project:document.getElementById('noteProject').value.trim(),participants:document.getElementById('noteParticipants').value.trim(),agenda:document.getElementById('noteAgenda').value.trim(),discussion:discussionBlocks.map(x=>(x.title?x.title+'\\n':'')+x.text).join('\\n\\n'),discussionBlocks,decisions:document.getElementById('noteDecisions').value.trim(),actionsList};
+ n.actions=actionsList.map(x=>x.description).join('\\n');
+ if(id){const i=db.notes.findIndex(x=>String(x.id)===String(id));if(i>=0)db.notes[i]=n;else db.notes.unshift(n)}else db.notes.unshift(n);
+ saveDB();closeNote();renderAgendaSelectors(n.agendaId);renderNotes();renderActions();renderPlanning();renderMeetingPrep();
+}
+function deleteNote(id){if(!confirm('Excluir esta ata?'))return;db.notes=db.notes.filter(x=>String(x.id)!==String(id));saveDB();renderNotes()}
+function clearNoteDate(){document.getElementById('noteDateFilter').value='';renderNotes()}
+
+function ensurePlanning(){if(!db.planning)db.planning={meta:{},actions:[],schedule:[]};if(!db.planning.meta)db.planning.meta={};if(!Array.isArray(db.planning.actions))db.planning.actions=[];if(!Array.isArray(db.planning.schedule))db.planning.schedule=[];}
+function savePlanningMeta(){ensurePlanning();db.planning.meta={project:planProject.value,leader:planLeader.value,meetingDate:planMeetingDate.value,startDate:planStartDate.value};saveDB();}
+function renderPlanning(){ensurePlanning();const p=db.planning,m=p.meta;[['planProject','project'],['planLeader','leader'],['planMeetingDate','meetingDate'],['planStartDate','startDate']].forEach(([id,k])=>{let e=document.getElementById(id);if(document.activeElement!==e)e.value=m[k]||'';});
+ const c=[...p.schedule].sort((a,b)=>(a.start||'9999-12-31').localeCompare(b.start||'9999-12-31')||(a.package||'').localeCompare(b.package||'','pt-BR')||(a.name||'').localeCompare(b.name||'','pt-BR'));planScheduleCount.textContent=c.length;const dates=c.map(x=>x.end).filter(Boolean).sort();planDuration.textContent=dates.length?Math.ceil((new Date(dates.at(-1)+'T12:00:00')-new Date((m.startDate||c.map(x=>x.start).filter(Boolean).sort()[0]||dates[0])+'T12:00:00'))/86400000)+1:0;
+ scheduleTable.innerHTML=c.length?`<div class="table-wrap"><table class="data-table"><thead><tr><th>#</th><th>Atividade</th><th>Data de início</th><th>Dias de execução</th><th>Responsável</th><th>Predecessora</th><th>Data prevista de término</th><th></th></tr></thead><tbody>${Object.entries(c.reduce((groups,x)=>{const key=(x.package||'Sem pacote').trim()||'Sem pacote';(groups[key]||(groups[key]=[])).push(x);return groups;},{})).map(([pkg,items])=>`<tr class="package-group-row"><td colspan="8" style="background:var(--surface-2);font-weight:700;padding:10px 12px">📦 ${esc(pkg)} <span class="muted" style="font-weight:400">· ${items.length} ${items.length===1?'atividade':'atividades'}</span></td></tr>${items.map(x=>`<tr><td style="padding-left:18px">${c.indexOf(x)+1}</td><td>${esc(x.name)}</td><td>${x.start?fmtNoteDate(x.start):'—'}</td><td>${x.duration} dias</td><td>${esc(x.owner||'—')}</td><td>${esc(c.find(y=>y.id===x.predecessor)?.name||'—')}</td><td>${x.end?fmtNoteDate(x.end):'—'}</td><td><button class="ghost small" onclick="openScheduleItem('${x.id}')">Editar</button> <button class="ghost small" onclick="deleteScheduleItem('${x.id}')">Excluir</button></td></tr>`).join('')}`).join('')}</tbody></table></div>`:'<div class="empty">Nenhuma atividade estruturada.</div>';
+}
+function openPlanAction(id=''){ensurePlanning();const x=db.planning.actions.find(v=>v.id===id)||{};planActionId.value=x.id||'';planActionDesc.value=x.description||'';planActionOwner.value=x.owner||'';planActionDeadline.value=x.deadline||'';planActionPriority.value=x.priority||'Média';planActionStatus.value=x.status||'A fazer';planActionNotes.value=x.notes||'';planActionTitle.textContent=id?'Editar ação':'Nova ação';planActionDialog.showModal();}
+function savePlanAction(e){e.preventDefault();ensurePlanning();const id=planActionId.value,x={id:id||'pa_'+uid(),description:planActionDesc.value.trim(),owner:planActionOwner.value.trim(),deadline:planActionDeadline.value,priority:planActionPriority.value,status:planActionStatus.value,notes:planActionNotes.value.trim()};if(id){let i=db.planning.actions.findIndex(v=>v.id===id);if(i>=0)db.planning.actions[i]=x;}else db.planning.actions.push(x);saveDB();planActionDialog.close();renderPlanning();}
+function deletePlanAction(id){if(!confirm('Excluir esta ação?'))return;db.planning.actions=db.planning.actions.filter(x=>x.id!==id);saveDB();renderPlanning();}
+function openScheduleItem(id=''){ensurePlanning();const x=db.planning.schedule.find(v=>v.id===id)||{};scheduleItemId.value=x.id||'';schedulePackage.value=x.package||'';scheduleName.value=x.name||'';scheduleOwner.value=x.owner||'';scheduleDuration.value=x.duration||1;scheduleStart.value=x.start||db.planning.meta.startDate||'';schedulePredecessor.innerHTML='<option value="">Sem predecessora</option>'+db.planning.schedule.filter(v=>v.id!==id).map(v=>`<option value="${v.id}">${esc(v.name)} · ${esc(v.package||'Sem pacote')}</option>`).join('');schedulePredecessor.value=x.predecessor||'';scheduleItemTitle.textContent=id?'Editar bloco de entrega':'Novo bloco de entrega';scheduleItemDialog.showModal();}
+function saveScheduleItem(e){e.preventDefault();ensurePlanning();const id=scheduleItemId.value,start=scheduleStart.value,duration=Math.max(1,Number(scheduleDuration.value)||1),end=addDays(start,duration-1),x={id:id||'sc_'+uid(),package:schedulePackage.value.trim(),name:scheduleName.value.trim(),owner:scheduleOwner.value.trim(),predecessor:schedulePredecessor.value,duration,start,end};if(id){let i=db.planning.schedule.findIndex(v=>v.id===id);if(i>=0)db.planning.schedule[i]=x;}else db.planning.schedule.push(x);saveDB();scheduleItemDialog.close();renderPlanning();}
+function deleteScheduleItem(id){if(!confirm('Excluir este bloco de entrega?'))return;db.planning.schedule=db.planning.schedule.filter(x=>x.id!==id);saveDB();renderPlanning();}
+function addDays(v,n){if(!v)return '';const d=new Date(v+'T12:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+function recalculateSchedule(){ensurePlanning();db.planning.schedule.forEach(x=>{x.end=addDays(x.start,Math.max(1,Number(x.duration)||1)-1);});saveDB();renderPlanning();}
+function exportPlanningCSV(){ensurePlanning();const rows=[['Pacote de entrega','Atividade','Data de início','Dias de execução','Responsável','Predecessora','Data prevista de término'],...db.planning.schedule.map(x=>[x.package,x.name,x.start,x.duration,x.owner,db.planning.schedule.find(y=>y.id===x.predecessor)?.name||'',x.end])];const csv='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='Base_Cronograma_PMO.csv';a.click();URL.revokeObjectURL(a.href);}
+
+function renderNotes(){
+ const q=(document.getElementById('noteSearch').value||'').toLowerCase(),d=document.getElementById('noteDateFilter').value;
+ const list=db.notes.filter(n=>(!d||n.date===d)&&[n.title,n.project,n.agenda,n.body,n.discussion,n.decisions,n.participants,n.actions].join(' ').toLowerCase().includes(q)).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(a.time||'').localeCompare(b.time||''));
+ document.getElementById('notesList').innerHTML=list.length?list.map(n=>`<article class="notebook"><div class="row"><div><div class="note-title">${esc(n.title||'Registro')}</div><div class="meta">${n.date?new Date(n.date+'T12:00:00').toLocaleDateString('pt-BR'):'Sem data'}${n.time?' · Início: '+esc(n.time):' · Horário não informado'}${n.endTime?' · Fim: '+esc(n.endTime):''}${n.agendaId?' · Agenda: '+esc(db.agendas.find(a=>a.id===n.agendaId)?.name||'Agenda'):''}${n.project?' · Projeto: '+esc(n.project):' · Sem tema relacionado'}</div></div><div class="actions"><button class="secondary small" onclick="copyNoteMinutes('${n.id}')">Copiar ata</button><button class="ghost small" onclick="openNote('${n.id}')">Abrir</button><button class="danger small" onclick="deleteNote('${n.id}')">Excluir</button></div></div></article>`).join(''):'<div class="empty">Nenhuma ata encontrada. Clique em “Nova ata de reunião” para começar.</div>';
+}
+function actionStatusKey(noteId,action){return String(noteId)+'_'+String(action.id||action._index)}
+function updateActionStatus(key,value){db.actionStatus=db.actionStatus||{};db.actionStatus[key]=value;saveDB();renderActions()}
+function updateActionDeadline(key,value){
+ (db.notes||[]).forEach(n=>(n.actionsList||[]).forEach((a,i)=>{if(actionStatusKey(n.id,{...a,_index:i})===key)a.deadline=value;}));
+ saveDB();renderActions();
+}
+function updateActionNotes(key,value){
+ (db.notes||[]).forEach(n=>(n.actionsList||[]).forEach((a,i)=>{if(actionStatusKey(n.id,{...a,_index:i})===key)a.notes=value;}));
+ saveDB();
+}
+function exportPendingActionsPDF(){
+ const selectedOwner=document.getElementById('actionOwnerFilter')?.value||'';
+ const rows=[];
+ (db.notes||[]).forEach(n=>(n.actionsList||[]).forEach((a,i)=>{
+  const key=actionStatusKey(n.id,{...a,_index:i});
+  const raw=(db.actionStatus||{})[key]||a.status||'Pendente';
+  if(raw==='Concluída')return;
+  const responsible=String(a.responsible||'').trim()||'Sem responsável';
+  if(selectedOwner&&responsible!==selectedOwner)return;
+  const subject=(n.discussionBlocks||[]).find(x=>String(x.id)===String(a.subjectId));
+  rows.push({...a,responsible,subjectTitle:subject?.title||'Sem assunto',noteTitle:n.title||'Ata sem título',meetingDate:n.date||''});
+ }));
+ if(!rows.length){alert(selectedOwner?'Não há ações pendentes para o responsável selecionado.':'Não há ações pendentes para exportar.');return;}
+ const escHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const groups=[...new Set(rows.map(a=>a.responsible))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+ const sections=groups.map(owner=>{const list=rows.filter(a=>a.responsible===owner).sort((a,b)=>(a.meetingDate||'9999-12-31').localeCompare(b.meetingDate||'9999-12-31')||(a.deadline||'9999-12-31').localeCompare(b.deadline||'9999-12-31'));return `<section class="owner"><h2>${escHtml(owner)} <small>${list.length} ${list.length===1?'ação pendente':'ações pendentes'}</small></h2><table><thead><tr><th>Ação</th><th>Assunto</th><th>Prazo</th><th>Reunião de origem</th><th>Data da reunião</th></tr></thead><tbody>${list.map(a=>`<tr><td><strong>${escHtml(a.description||'Ação sem descrição')}</strong></td><td>${escHtml(a.subjectTitle)}</td><td>${a.deadline?new Date(a.deadline+'T12:00:00').toLocaleDateString('pt-BR'):'Não definido'}</td><td>${escHtml(a.noteTitle)}</td><td>${a.meetingDate?new Date(a.meetingDate+'T12:00:00').toLocaleDateString('pt-BR'):'Não informada'}</td></tr>`).join('')}</tbody></table></section>`}).join('');
+ const title=selectedOwner?`Ações pendentes · ${selectedOwner}`:'Ações pendentes por responsável';
+ const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${escHtml(title)}</title><style>@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box}body{font:10pt Arial,sans-serif;color:#263746;margin:0;line-height:1.4}header{background:#294b6b;color:white;padding:18px 20px;margin-bottom:18px}header h1{font-size:18pt;margin:0 0 5px}header p{margin:0;color:#e2edf7;font-size:9pt}.owner{margin:0 0 18px;break-inside:avoid}.owner h2{font-size:12pt;color:#294b6b;border-bottom:2px solid #8db5d8;padding:0 0 7px;margin:0 0 8px}.owner h2 small{font-size:9pt;font-weight:400;color:#687b8d;margin-left:8px}table{width:100%;border-collapse:collapse;font-size:8.5pt}th{background:#eaf1f7;color:#294b6b;text-align:left}th,td{border:1px solid #d8e2eb;padding:7px;vertical-align:top}tbody tr:nth-child(even){background:#f8fafc}footer{margin-top:20px;border-top:1px solid #d8e2eb;padding-top:8px;color:#758596;font-size:8pt}@media print{header,th{print-color-adjust:exact;-webkit-print-color-adjust:exact}tr{break-inside:avoid}}</style></head><body><header><h1>${escHtml(title)}</h1><p>Relatório de acompanhamento · ${new Date().toLocaleDateString('pt-BR')}</p></header>${sections}<footer>Total: ${rows.length} ações pendentes · Gerado em ${new Date().toLocaleString('pt-BR')}</footer><script>window.addEventListener('load',()=>setTimeout(()=>window.print(),350));<\/script></body></html>`;
+ const w=window.open('','_blank');if(!w){alert('O navegador bloqueou a abertura do relatório. Permita pop-ups para este arquivo e tente novamente.');return;}w.document.open();w.document.write(html);w.document.close();
+}
+function renderActions(){
+ const all=[];
+ (db.notes||[]).forEach(n=>(n.actionsList||[]).forEach((a,i)=>{
+  const subject=(n.discussionBlocks||[]).find(x=>String(x.id)===String(a.subjectId));
+  all.push({...a,subjectTitle:subject?.title||'',_index:i,noteId:n.id,noteTitle:n.title||'Ata sem título',agendaId:n.agendaId||'',agendaName:db.agendas?.find(g=>g.id===n.agendaId)?.name||'Sem agenda',project:n.project||'',meetingDate:n.date||'',key:actionStatusKey(n.id,{...a,_index:i})});
+ }));
+ const q=(document.getElementById('actionSearch')?.value||'').toLowerCase();
+ const status=document.getElementById('actionStatusFilter')?.value||'';
+ const agenda=document.getElementById('actionAgendaFilter')?.value||'';
+ const owner=document.getElementById('actionOwnerFilter')?.value||'';
+ const subjectFilter=document.getElementById('actionSubjectFilter')?.value||'';
+ const weekFilter=document.getElementById('actionWeekFilter')?.value||'';
+ const owners=[...new Set(all.map(a=>String(a.responsible||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+ const ag=document.getElementById('actionAgendaFilter'),pa=agenda;
+ const agendaOptions=[...new Map(all.map(a=>[a.agendaId,a.agendaName])).entries()].filter(([id])=>id).sort((a,b)=>a[1].localeCompare(b[1],'pt-BR'));
+ ag.innerHTML='<option value="">Todas as agendas</option>'+agendaOptions.map(([id,name])=>`<option value="${esc(id)}">${esc(name)}</option>`).join('');ag.value=agendaOptions.some(([id])=>id===pa)?pa:'';
+ const po=document.getElementById('actionOwnerFilter');
+ po.innerHTML='<option value="">Todos os responsáveis</option>'+owners.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');po.value=owners.includes(owner)?owner:'';
+ const subjects=[...new Set(all.map(a=>String(a.subjectTitle||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+ const sf=document.getElementById('actionSubjectFilter');
+ sf.innerHTML='<option value="">Todos os assuntos</option>'+subjects.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');sf.value=subjects.includes(subjectFilter)?subjectFilter:'';
+ const statusOf=a=>{const raw=(db.actionStatus||{})[a.key]||a.status||'Pendente';return raw==='Concluída'?'Concluída':'Pendente'};
+ const localToday=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+ const today=localToday();
+ const now=new Date();const monday=new Date(now.getFullYear(),now.getMonth(),now.getDate());monday.setDate(monday.getDate()-(monday.getDay()+6)%7);const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);const isoLocal=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;const weekStart=isoLocal(monday),weekEnd=isoLocal(sunday);
+ const withStatus=all.map(a=>({...a,status:statusOf(a)}));
+ const filtered=withStatus.filter(a=>(!status||a.status===status)&&(!ag.value||a.agendaId===ag.value)&&(!po.value||String(a.responsible||'').trim()===po.value)&&(!sf.value||a.subjectTitle===sf.value)&&(!weekFilter||(a.status==='Pendente'&&a.deadline&&a.deadline>=weekStart&&a.deadline<=weekEnd))&&[a.description,a.responsible,a.subjectTitle,a.noteTitle,a.notes].join(' ').toLowerCase().includes(q)).sort((a,b)=>(a.deadline||'9999-12-31').localeCompare(b.deadline||'9999-12-31')||(a.description||'').localeCompare(b.description||'','pt-BR'));
+ const isOpen=a=>a.status!=='Concluída';
+ const overdue=filtered.filter(a=>a.deadline&&a.deadline<today&&isOpen(a));
+ const dueToday=filtered.filter(a=>a.deadline===today&&isOpen(a));
+ const due=[...overdue,...dueToday];
+ document.getElementById('actionTotal').textContent=all.length;
+ document.getElementById('actionOpen').textContent=withStatus.filter(isOpen).length;
+ document.getElementById('actionDone').textContent=withStatus.filter(a=>a.status==='Concluída').length;
+ document.getElementById('actionDueCount').textContent=due.length;
+ const dueHtml=due.length?`<section class="action-due-section"><div class="action-due-heading"><div><h3>Vencem hoje ou estão atrasadas</h3><p>Ações abertas que precisam de acompanhamento</p></div><strong>${due.length}</strong></div>${due.map(a=>`<div class="action-due-row"><div><b>${esc(a.description||'Ação sem descrição')}</b><small>${esc(a.responsible||'Sem responsável')}</small></div><span class="${a.deadline<today?'overdue-label':'today-label'}">${a.deadline<today?'Atrasada':'Vence hoje'} · ${fmtNoteDate(a.deadline)}</span></div>`).join('')}</section>`:'';
+ const table=filtered.length?`<div class="table-wrap"><table class="data-table action-table"><thead><tr><th>Ação / assunto</th><th>Agenda</th><th>Responsável</th><th>Prazo</th><th>Ata de origem</th><th>Situação</th><th>Anotações</th></tr></thead><tbody>${filtered.map(a=>`<tr class="${a.status==='Concluída'?'action-completed':''} ${a.deadline&&a.deadline<=today&&isOpen(a)?'action-overdue':''}"><td><strong>${esc(a.description||'Ação sem descrição')}</strong><div class="meta">${esc(a.subjectTitle||'Sem assunto vinculado')}</div></td><td>${esc(a.agendaName||'—')}</td><td>${esc(a.responsible||'—')}</td><td><input type="date" aria-label="Editar prazo da ação" value="${esc(a.deadline||'')}" onchange="updateActionDeadline('${esc(a.key)}',this.value)"></td><td>${esc(a.noteTitle)}<div class="meta">${fmtNoteDate(a.meetingDate)}</div></td><td><select aria-label="Situação da ação" onchange="updateActionStatus('${esc(a.key)}',this.value)">${['Pendente','Concluída'].map(v=>`<option ${a.status===v?'selected':''}>${v}</option>`).join('')}</select></td><td><textarea class="action-notes" rows="2" placeholder="Anotações..." aria-label="Anotações da ação" onchange="updateActionNotes('${esc(a.key)}',this.value)">${esc(a.notes||'')}</textarea></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Nenhuma ação encontrada. Registre ações na aba “Ata Reuniões” para acompanhá-las aqui.</div>';
+ document.getElementById('actionsList').innerHTML=dueHtml+table;
+}
+function renderMeetingPrep(){
+ // Tela removida; o gerenciamento de agendas agora fica na aba ATA.
+ if(!document.getElementById('prepOpenCount'))return;
+ const all=[];
+ (db.notes||[]).forEach(n=>(n.actionsList||[]).forEach((a,i)=>{
+  const key=actionStatusKey(n.id,{...a,_index:i});
+  const rawStatus=(db.actionStatus||{})[key]||a.status||'Pendente';
+  const status=rawStatus==='Concluída'?'Concluída':'Pendente';
+  const subject=(n.discussionBlocks||[]).find(x=>String(x.id)===String(a.subjectId));
+  all.push({...a,status,key,agendaId:n.agendaId||'',agendaName:db.agendas?.find(g=>g.id===n.agendaId)?.name||'Sem agenda',subjectTitle:subject?.title||'',noteTitle:n.title||'Ata sem título',meetingDate:n.date||''});
+ }));
+ const selectedAgenda=document.getElementById('prepAgenda')?.value||'';
+ const agendaAll=all.filter(a=>a.agendaId===selectedAgenda);
+ const open=agendaAll.filter(a=>a.status!=='Concluída');
+ const today=new Date().toISOString().slice(0,10);
+ const overdue=open.filter(a=>a.deadline&&a.deadline<today);
+ document.getElementById('prepOpenCount').textContent=open.length;
+ document.getElementById('prepOverdueCount').textContent=overdue.length;
+ document.getElementById('prepProgressCount').textContent=0;
+ document.getElementById('prepDoneCount').textContent=agendaAll.filter(a=>a.status==='Concluída').length;
+ const q=(document.getElementById('prepSearch')?.value||'').toLowerCase();
+ const filtered=open.filter(a=>[a.description,a.responsible,a.subjectTitle,a.noteTitle].join(' ').toLowerCase().includes(q)).sort((a,b)=>(a.deadline||'9999-12-31').localeCompare(b.deadline||'9999-12-31'));
+ document.getElementById('prepActionsList').innerHTML=filtered.length?
+ `<div class="table-wrap"><table class="data-table"><thead><tr><th>Ação</th><th>Assunto</th><th>Responsável</th><th>Prazo</th><th>Status</th><th>ATA de origem</th></tr></thead><tbody>${filtered.map(a=>`<tr class="${a.deadline&&a.deadline<today?'action-overdue':''}"><td><strong>${esc(a.description||'Ação sem descrição')}</strong></td><td>${esc(a.subjectTitle||'—')}</td><td>${esc(a.responsible||'—')}</td><td>${a.deadline?fmtNoteDate(a.deadline):'—'}</td><td>${esc(a.status)}</td><td>${esc(a.noteTitle)}<div class="meta">${fmtNoteDate(a.meetingDate)}</div></td></tr>`).join('')}</tbody></table></div>`
+ :'<div class="empty">Nenhuma ação em aberto encontrada para esta agenda.</div>';
+}
+
+function fmtNoteDate(v){return v?new Date(v+'T12:00:00').toLocaleDateString('pt-BR'):'Não informado'}
+async function copyNoteMinutes(id){
+ const e=db.notes.find(x=>String(x.id)===String(id));if(!e)return;
+ const eh=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const val=v=>String(v||'Não informado'),actions=e.actionsList?.length?e.actionsList:[{description:e.actions||'',responsible:e.responsible||'',deadline:e.deadline||''}];
+ const sections=[['01.','OBJETIVO / PAUTA',e.agenda||e.body],['03.','DECISÕES TOMADAS',e.decisions]];
+ const discussionBlocks=Array.isArray(e.discussionBlocks)&&e.discussionBlocks.length?e.discussionBlocks:[{title:'',text:e.discussion||''}];
+ // Cada * é convertido em bullet point, com espaçamento mínimo entre os itens.
+ const formatEmailText=v=>{
+  const raw=String(v||'Não informado').replace(/\\r/g,'');
+  // Neste campo, o asterisco é sempre delimitador de um novo item, mesmo quando está no meio da frase.
+  const items=raw.split('*').map(x=>x.trim()).filter(Boolean);
+  if(!raw.includes('*')) return `<div style="font-family:Arial,sans-serif;font-size:12px;line-height:16px;color:#333;white-space:pre-wrap">${eh(raw).replace(/\\n/g,'<br>')}</div>`;
+  return `<ul style="margin:0;padding:0 0 0 18px;list-style-type:disc">${items.map(item=>`<li style="margin:0 0 1px 0;padding:0;font-family:Arial,sans-serif;font-size:12px;line-height:15px;color:#333">${eh(item).replace(/\\n/g,'<br>')}</li>`).join('')}</ul>`;
+ };;
+ const sectionHtml=`<tr><td style="padding:11px 12px 5px;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:.5px;color:#294b6b">01. &nbsp; OBJETIVO / PAUTA</td></tr><tr><td style="padding:0 12px 10px">${formatEmailText(val(e.agenda||e.body))}</td></tr><tr><td style="padding:11px 12px 5px;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:.5px;color:#294b6b">02. &nbsp; DISCUSSÕES / PRINCIPAIS PONTOS</td></tr>${discussionBlocks.map((b,i)=>`<tr><td style="padding:8px 12px 2px;font-family:Arial,sans-serif;font-size:12px;font-weight:bold;color:#294b6b">${eh(b.title||'Assunto '+(i+1))}</td></tr><tr><td style="padding:2px 12px 5px">${formatEmailText(b.text||'Não informado')}</td></tr>`).join('')}<tr><td style="padding:11px 12px 5px;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:.5px;color:#294b6b">03. &nbsp; DECISÕES TOMADAS</td></tr><tr><td style="padding:0 12px 10px">${formatEmailText(val(e.decisions))}</td></tr>`;
+ const actionRows=actions.filter(x=>x.description||x.responsible||x.deadline).map((x,i)=>`<tr><td width="58%" style="padding:6px 8px;border:1px solid #cbd5e1;font-family:Arial,sans-serif;font-size:12px;color:#243447">${i+1}. ${eh(x.description||'—')}</td><td width="24%" style="padding:6px 7px;border:1px solid #cbd5e1;font-family:Arial,sans-serif;font-size:12px;color:#334155">${eh(val(x.responsible))}</td><td width="18%" style="padding:6px 6px;border:1px solid #cbd5e1;font-family:Arial,sans-serif;font-size:12px;color:#334155">${eh(x.deadline?fmtNoteDate(x.deadline):'Não informado')}</td></tr>`).join('')||'<tr><td colspan="3" style="padding:14px;font-family:Arial,sans-serif;font-size:13px;color:#64748b">Nenhuma ação registrada.</td></tr>';
+ const horario=e.time?(e.endTime?`${e.time} às ${e.endTime}`:e.time):(e.endTime?'Até '+e.endTime:'Não informado');
+ const meta=[['DATA',fmtNoteDate(e.date)],['HORÁRIO',horario],['TEMA',val(e.project)],['PARTICIPANTES',val(e.participants)]];
+ const metaHtml=meta.map(([k,v])=>`<td width="50%" valign="top" style="padding:7px 9px;border:1px solid #e2e8f0;background:#fff"><div style="font-family:Arial,sans-serif;font-size:9px;font-weight:bold;letter-spacing:.5px;color:#718096;margin-bottom:2px">${k}</div><div style="font-family:Arial,sans-serif;font-size:12px;color:#243447">${eh(v)}</div></td>`).join('');
+ const html=`<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;background:#fff"><tr><td align="center"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="820" style="width:100%;max-width:820px;border:1px solid #dbe3ec;border-collapse:collapse;background:#fff"><tr><td bgcolor="#F5F5F5" align="center" style="padding:11px 14px;background-color:#F5F5F5 !important;color:#294b6b !important;text-align:center"><font face="Arial,sans-serif" color="#294B6B" size="6"><b><span style="color:#294B6B !important;font-size:20px">ATA DE REUNIÃO</span></b></font></td></tr><tr><td style="padding:9px 10px 4px"><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse"><tr>${metaHtml.slice(0,metaHtml.indexOf('</td>')+5)}${metaHtml.slice(metaHtml.indexOf('</td>')+5,metaHtml.indexOf('</td>',metaHtml.indexOf('</td>')+5)+5)}</tr><tr>${metaHtml.slice(metaHtml.indexOf('</td>',metaHtml.indexOf('</td>')+5)+5)}</tr></table></td></tr>${sectionHtml}<tr><td style="padding:11px 12px 5px;font-family:Arial,sans-serif;font-size:11px;font-weight:bold;letter-spacing:.5px;color:#294b6b">04. &nbsp; AÇÕES / ENCAMINHAMENTOS</td></tr><tr><td style="padding:0 12px 10px"><table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;border:1px solid #e2e8f0;table-layout:fixed"><tr><th width="58%" align="left" style="padding:6px 8px;border:1px solid #cbd5e1;background:#f1f5f9;font-family:Arial,sans-serif;font-size:10px;color:#35536e">AÇÃO</th><th width="24%" align="left" style="padding:6px 7px;border:1px solid #cbd5e1;background:#f1f5f9;font-family:Arial,sans-serif;font-size:10px;color:#35536e">RESPONSÁVEL</th><th width="18%" align="left" style="padding:6px;border:1px solid #cbd5e1;background:#f1f5f9;font-family:Arial,sans-serif;font-size:10px;color:#35536e">PRAZO</th></tr>${actionRows}</table></td></tr></table></td></tr></table>`;
+ const plainText=v=>String(val(v)).replace(/\r/g,'').split(/(?:^|\n)\s*\*\s*|\s+\*\s*/).map(x=>x.trim()).filter(Boolean).map(x=>'• '+x).join('\n');
+ const plain=`ATA DE REUNIÃO\n${e.title||'Reunião'}\n\nDATA: ${fmtNoteDate(e.date)}\nHORÁRIO: ${horario}\nTEMA: ${val(e.project)}\nPARTICIPANTES: ${val(e.participants)}\n\n${'01. OBJETIVO / PAUTA\n'+plainText(e.agenda||e.body)+'\n\n02. DISCUSSÕES / PRINCIPAIS PONTOS\n'+discussionBlocks.map((b,i)=>(b.title||'Assunto '+(i+1))+'\n'+(b.text||'Não informado')).join('\n\n')+'\n\n03. DECISÕES TOMADAS\n'+plainText(e.decisions)}\n\n04. AÇÕES / ENCAMINHAMENTOS\n${actions.map((x,i)=>`${i+1}. ${x.description||''} | ${val(x.responsible)} | ${x.deadline?fmtNoteDate(x.deadline):'Não informado'}`).join('\n')}`;
+ try{
+  if(navigator.clipboard?.write&&window.ClipboardItem){
+   await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([plain],{type:'text/plain'})})]);
+  }else{
+   const box=document.createElement('div');box.contentEditable='true';box.innerHTML=html;
+   box.style.position='fixed';box.style.left='-10000px';box.style.top='0';document.body.appendChild(box);
+   const range=document.createRange();range.selectNodeContents(box);
+   const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);
+   const copied=document.execCommand('copy');selection.removeAllRanges();box.remove();
+   if(!copied)throw new Error('copy command failed');
+  }
+  alert('Ata formatada copiada! Cole diretamente no corpo do e-mail.');
+ }catch(err){
+  try{await navigator.clipboard.writeText(plain);alert('Texto da ata copiado. Cole no corpo do e-mail.')}catch(e){alert('Não foi possível copiar. Verifique a permissão de área de transferência do navegador.')}
+ }
+}
+
+// Complementos identificados nos TAPs adicionais analisados.
+checklist[0][2].push(["Banheira de vácuo instalada","Banheira de vácuo instalada e integrada à linha de extrusão."]);
+checklist[0][2].push(["Puxador instalado","Puxador instalado e disponível para operação na linha."]);
+checklist[0][2].push(["Bolsadeira instalada ou retrofitada","Bolsadeira instalada ou retrofitada e apta a produzir os itens previstos."]);
+checklist[0][2].push(["Cintadeira instalada","Cintadeira instalada e disponível para amarração dos produtos."]);
+checklist[0][2].push(["Equipamentos de marcação de profundidade e bolsa disponibilizados","Equipamentos de marcação manual e/ou automática fabricados, instalados e validados."]);
+checklist[0][2].push(["Estufa para ensaios de comportamento ao calor instalada","Estufa adquirida, instalada e disponível para os ensaios de qualidade previstos."]);
+checklist[1][2].push(["Automação de moldes ou células implantada","Automação prevista para o molde ou célula instalada e validada na unidade."]);
+checklist[2][2].push(["Pintura de piso e áreas de trabalho concluída","Pisos das áreas previstas pintados conforme padrão e layout aprovados."]);
+checklist[2][2].push(["Rede de internet e pontos elétricos para postos de trabalho instalados","Pontos de rede e energia instalados e disponíveis nos postos previstos."]);
+checklist[2][2].push(["Mobiliário e armários das áreas de apoio disponibilizados","Mesas, cadeiras, armários e mobiliário previstos montados e disponíveis para uso."]);
+checklist[2][2].push(["Guarda-corpo e caminho seguro implantados","Guarda-corpo instalado e caminho seguro adequado e liberado para circulação."]);
+checklist[3][2].push(["Try-out de moldes e ferramentais realizado","Try-out realizado com a equipe responsável e processo validado para produção."]);
+checklist[3][2].push(["Formulação ou composto de matéria-prima desenvolvido e homologado","Formulação específica desenvolvida, homologada e liberada para aplicação no processo."]);
+checklist[4][2].push(["Rótulos e anéis de vedação homologados","Rótulos, adaptadores e anéis de vedação avaliados e homologados para aplicação."]);
+checklist[4][2].push(["Procedimento de criação de planos de controle implantado","Procedimento elaborado, aprovado e disponibilizado às unidades responsáveis."]);
+checklist[4][2].push(["BI de acompanhamento das inspeções de qualidade disponibilizado","BI publicado e disponível para acompanhamento da execução das inspeções dos lotes."]);
+checklist[5][2].push(["Cadastros de peso-base-zero no MII realizados","Cadastros de peso-base-zero dos produtos disponíveis no MII para apontamento."]);
+checklist[5][2].push(["Dados de produtos para lançamento no site disponibilizados","Arquivos e informações dos produtos disponibilizados à área responsável pelo site e lançamento."]);
+checklist[5][2].push(["Insumos e componentes cadastrados no MRP","Insumos e componentes previstos cadastrados e disponíveis para planejamento de materiais."]);
+checklist[6][2].push(["Planos de manutenção preventiva de moldes cadastrados no SAP","Planos de manutenção preventiva dos moldes cadastrados no ambiente de manutenção SAP."]);
+checklist[6][2].push(["Localização dos moldes atualizada no SAP","Localização dos moldes atualizada no cadastro de manutenção SAP conforme unidade de destino."]);
+checklist[7][2].push(["Treinamento de inspetores no procedimento de planos de controle realizado","Inspetores das unidades envolvidas treinados no novo procedimento de criação e aplicação dos planos de controle."]);
+checklist[8][2].push(["Instruções de trabalho de montagem de produtos elaboradas","Instruções de trabalho de montagem dos produtos previstas elaboradas e disponibilizadas às unidades."]);
+checklist[10][2].push(["Aramados para armazenamento de componentes disponibilizados","Aramados previstos disponibilizados para armazenamento e movimentação dos componentes."]);
+checklist[10][2].push(["Carrinhos unitizadores disponibilizados","Carrinhos ou bases unitizadoras previstos disponibilizados para movimentação dos produtos."]);
+checklist[10][2].push(["Padrões de amarração dos produtos definidos","Padrões de amarração dos produtos definidos e disponibilizados para as unidades."]);
+checklist[10][2].push(["Transferência de matéria-prima entre unidades realizada","Matéria-prima prevista transferida para a unidade de produção conforme necessidade do projeto."]);
+
+function ensureTapDeliverables(){
+ db.tap=db.tap||{};
+ const previous=Array.isArray(db.tap.deliverables)?db.tap.deliverables:[];
+ if(db.tap.catalogVersion!==10){
+  const civilItems=new Set([
+   "Obra civil / alpendre / varanda concluída",
+   "Piso, bases e área de instalação preparados",
+   "Portões, acessos e fluxo de movimentação adequados",
+   "Sala / área de apoio construída e disponível",
+   "Adequação 5S e identificação visual da área",
+   "Pintura de piso e áreas de trabalho concluída",
+   "Mobiliário e armários das áreas de apoio disponibilizados",
+   "Guarda-corpo e caminho seguro implantados"
+  ]);
+  const groupByText={};
+  checklist.forEach((g,i)=>g[2].forEach(item=>{groupByText[String(item[0]).trim()]=i;}));
+  db.tap.deliverables=previous.map(d=>{
+   const group=groupByText[String(d.text||'').trim()];
+   return group===undefined?d:{...d,group};
+  });
+  const existing=new Set(db.tap.deliverables.map(d=>String(d.text||'').trim()));
+  checklist.forEach((g,i)=>g[2].forEach((item,j)=>{
+   if(!existing.has(item[0])){
+    db.tap.deliverables.push({id:'tap6_'+i+'_'+j,group:i,text:item[0],criteria:item[1],source:'TAPs enviados'});
+   }
+  }));
+  db.tap.catalogVersion=10;
+  saveDB();
+ }
+}
+function renderTap(){
+ ensureTapDeliverables();
+ const t=db.tap||{},statuses=t.deliverableStatus||{},notes=t.deliverableNotes||{},items=t.deliverables||[];
+ const counts={yes:0,no:0,confirm:0,pending:0};
+ document.getElementById('tapChecklist').innerHTML=checklist.map((g,i)=>{
+  const groupItems=items.filter(d=>Number(d.group)===i);
+  return `<section class="check-section"><h3><span>${g[0]}</span><button class="secondary add-deliverable" type="button" onclick="addDeliverable(${i})">＋ Item</button></h3><div class="check-items">${groupItems.map(d=>{
+   const k=d.id,v=statuses[k]||'';if(v==='yes')counts.yes++;else if(v==='no')counts.no++;else if(v==='confirm')counts.confirm++;else counts.pending++;
+   return `<div class="check-item"><div class="deliverable-name">${esc(d.text)}</div><div class="deliverable-status">${[['yes','Previsto','yes'],['no','Não previsto','no'],['confirm','A confirmar','confirm']].map(([value,label,cls])=>`<label class="status-choice ${v===value?'selected '+cls:''}"><input type="radio" name="status_${esc(k)}" ${v===value?'checked':''} onchange="setDeliverableStatus('${esc(k)}','${value}')">${label}</label>`).join('')}</div><div class="deliverable-tools"><button type="button" class="ghost small icon-only" title="Editar item" aria-label="Editar item" onclick="editDeliverable('${esc(k)}')">✎</button><button type="button" class="ghost small icon-only delete-icon" title="Excluir entregável" aria-label="Excluir entregável" onclick="deleteDeliverable('${esc(k)}')">⌫</button></div><div class="note-wrap"><textarea class="deliverable-note" rows="1" placeholder="Anotações: premissas, dúvidas e observações..." oninput="saveDeliverableNote('${esc(k)}',this.value)">${esc(notes[k]||'')}</textarea></div></div>`;
+  }).join('')||'<div class="muted" style="font-size:11px;padding:8px 0">Nenhum item cadastrado nesta frente.</div>'}</div></section>`;
+ }).join('');
+ document.getElementById('tapCountYes').textContent=counts.yes;document.getElementById('tapCountNo').textContent=counts.no;document.getElementById('tapCountConfirm').textContent=counts.confirm;document.getElementById('tapCountPending').textContent=counts.pending;
+}
+function addDeliverable(group){const text=prompt('Nome do novo item:');if(!text||!text.trim())return;db.tap.deliverables.push({id:'custom_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),group,text:text.trim()});saveDB();renderTap()}
+function editDeliverable(id){const d=db.tap.deliverables.find(x=>x.id===id);if(!d)return;const text=prompt('Editar item:',d.text);if(text===null||!text.trim())return;d.text=text.trim();saveDB();renderTap()}
+function deleteDeliverable(id){const d=db.tap.deliverables.find(x=>x.id===id);if(!d||!confirm('Excluir este entregável e suas marcações/anotações?'))return;db.tap.deliverables=db.tap.deliverables.filter(x=>x.id!==id);delete db.tap.deliverableStatus[id];delete db.tap.deliverableNotes[id];saveDB();renderTap()}
+function setDeliverableStatus(k,v){db.tap.deliverableStatus=db.tap.deliverableStatus||{};db.tap.deliverableStatus[k]=v;saveDB();renderTap()}
+function saveDeliverableNote(k,v){db.tap.deliverableNotes=db.tap.deliverableNotes||{};db.tap.deliverableNotes[k]=v;saveDB()}
+function saveTapMeta(){
+ db.tap=db.tap||{};
+ db.tap.owner=document.getElementById('tapOwner').value;
+ db.tap.manager=document.getElementById('tapManager').value;
+ db.tap.notes=document.getElementById('tapNotes').value;
+ const selected=document.getElementById('tapProjectSelect')?.value||'';
+ db.activeTapProjectId=selected||db.activeTapProjectId||'';
+ const active=(db.tapProjects||[]).find(p=>p.id===db.activeTapProjectId);
+ if(active)db.tap.project=active.name;
+ saveDB();
+}
+function ensureTapProjects(){
+ db.tapProjects=Array.isArray(db.tapProjects)?db.tapProjects:[];
+ if(!db.tapProjects.length){
+  const name=(db.tap&&db.tap.project)||'Projeto atual';
+  const id='project_'+uid();
+  db.tapProjects.push({id,name,data:JSON.parse(JSON.stringify(db.tap||{}))});
+  db.activeTapProjectId=id;db.tap.project=name;saveDB();
+ }
+ if(!db.tapProjects.some(p=>p.id===db.activeTapProjectId))db.activeTapProjectId=db.tapProjects[0].id;
+ const active=db.tapProjects.find(p=>p.id===db.activeTapProjectId);
+ if(active&&active.data)db.tap=JSON.parse(JSON.stringify(active.data));
+ if(active)db.tap.project=active.name;
+}
+function renderTapProjectSelect(){
+ const select=document.getElementById('tapProjectSelect');if(!select)return;
+ const current=db.activeTapProjectId||'';
+ select.innerHTML='<option value="">Selecione um projeto</option>'+(db.tapProjects||[]).map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+ select.value=current;
+}
+function selectTapProject(id){
+ if(!id)return;
+ saveTapMeta();
+ const project=(db.tapProjects||[]).find(p=>p.id===id);if(!project)return;
+ db.activeTapProjectId=id;db.tap=JSON.parse(JSON.stringify(project.data||{}));db.tap.project=project.name;
+ saveDB();loadTapMeta();renderTapProjectSelect();renderTap();
+}
+function addTapProject(){
+ const name=prompt('Nome do projeto:');if(!name||!name.trim())return;
+ const clean=name.trim();
+ if((db.tapProjects||[]).some(p=>p.name.toLowerCase()===clean.toLowerCase())){alert('Já existe um projeto cadastrado com esse nome.');return;}
+ saveTapMeta();
+ const id='project_'+uid();
+ const data={deliverables:JSON.parse(JSON.stringify(db.tap.deliverables||[])),deliverableStatus:{},deliverableNotes:{},project:clean,owner:'',manager:'',notes:''};
+ db.tapProjects.push({id,name:clean,data});db.activeTapProjectId=id;db.tap=JSON.parse(JSON.stringify(data));
+ saveDB();loadTapMeta();renderTapProjectSelect();renderTap();
+}
+function renameTapProject(){
+ const p=(db.tapProjects||[]).find(x=>x.id===db.activeTapProjectId);
+ if(!p){alert('Selecione um projeto.');return;}
+ const name=prompt('Novo nome do projeto:',p.name);if(!name||!name.trim())return;
+ const clean=name.trim();
+ if(db.tapProjects.some(x=>x.id!==p.id&&x.name.toLowerCase()===clean.toLowerCase())){alert('Já existe um projeto cadastrado com esse nome.');return;}
+ p.name=clean;db.tap.project=clean;saveDB();renderTapProjectSelect();
+}
+function deleteTapProject(){
+ const p=(db.tapProjects||[]).find(x=>x.id===db.activeTapProjectId);
+ if(!p){alert('Selecione um projeto.');return;}
+ if(!confirm(`Excluir o projeto "${p.name}" e seu checklist salvo?`))return;
+ db.tapProjects=db.tapProjects.filter(x=>x.id!==p.id);
+ if(!db.tapProjects.length){
+  const id='project_'+uid(),data={deliverables:JSON.parse(JSON.stringify(db.tap.deliverables||[])),deliverableStatus:{},deliverableNotes:{},project:'Projeto atual',owner:'',manager:'',notes:''};
+  db.tapProjects.push({id,name:'Projeto atual',data});
+ }
+ db.activeTapProjectId=db.tapProjects[0].id;db.tap=JSON.parse(JSON.stringify(db.tapProjects[0].data||{}));db.tap.project=db.tapProjects[0].name;
+ saveDB();loadTapMeta();renderTapProjectSelect();renderTap();
+}
+function loadTapMeta(){
+ const t=db.tap||{};
+ document.getElementById('tapOwner').value=t.owner||'';
+ document.getElementById('tapManager').value=t.manager||'';
+ document.getElementById('tapNotes').value=t.notes||'';
+ renderTapProjectSelect();
+}
+function resetTap(){
+ if(!confirm('Deseja limpar todas as marcações e anotações deste checklist?'))return;
+ const keep=db.tap.deliverables,project=db.tap.project,owner=db.tap.owner,manager=db.tap.manager;
+ db.tap={deliverables:keep,deliverableStatus:{},deliverableNotes:{},project,owner,manager,notes:''};
+ saveDB();loadTapMeta();renderTap();
+}
+function generateTapReport(){
+ ensureTapDeliverables();
+ const t=db.tap||{},items=t.deliverables||[],statuses=t.deliverableStatus||{},notes=t.deliverableNotes||{};
+ const labels={yes:'Previsto',no:'Não previsto',confirm:'A confirmar'};
+ const counts={yes:0,no:0,confirm:0,pending:0};
+ items.forEach(d=>{const v=statuses[d.id];if(labels[v])counts[v]++;else counts.pending++});
+ const escHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])).replace(/\n/g,'<br>');
+ const fmtDate=v=>v?new Date(v+'T12:00:00').toLocaleDateString('pt-BR'):'Não informado';
+ const grouped=checklist.map((g,i)=>{
+  const rows=items.filter(d=>Number(d.group)===i);
+  if(!rows.length)return '';
+  return `<section class="front"><h2>${escHtml(g[0])}</h2><table><thead><tr><th>Item</th><th style="width:115px">Classificação</th><th>Observações</th></tr></thead><tbody>${rows.map(d=>{const v=statuses[d.id],status=labels[v]||'Não avaliado';return `<tr><td>${escHtml(d.text)}</td><td><span class="status ${v||'pending'}">${status}</span></td><td>${notes[d.id]?escHtml(notes[d.id]):'—'}</td></tr>`}).join('')}</tbody></table></section>`;
+ }).join('');
+ const report=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Checklist Escopo Projeto</title><style>
+ @page{size:A4 landscape;margin:12mm 14mm}*{box-sizing:border-box}
+ body{font:10pt Arial,sans-serif;color:#263746;line-height:1.45;margin:0;background:#fff}
+ header{background:#294b6b;color:#fff;padding:22px 24px;border-radius:10px;margin-bottom:18px}
+ .eyebrow{font-size:8pt;letter-spacing:1.4px;text-transform:uppercase;color:#c9dff1;font-weight:700;margin:0 0 7px}
+ h1{font-size:21pt;line-height:1.15;margin:0 0 5px;color:#fff}
+ header .subtitle{font-size:9pt;color:#e2edf6;margin:0}
+ .meta{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin:0 0 18px}
+ .meta div{border:1px solid #dce5ed;border-radius:8px;padding:10px 12px;background:#f8fbfe;min-height:55px}
+ .meta small,.summary small{display:block;color:#718397;font-size:7.5pt;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+ .meta strong{font-size:10pt;color:#294b6b}
+ .section-title{font-size:12pt;color:#294b6b;margin:0 0 9px;font-weight:700}
+ .summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 20px; width:100%}
+ .summary div{border:1px solid #dce5ed;border-radius:8px;padding:10px;background:#fff}
+ .summary strong{font-size:20pt;color:#294b6b;line-height:1.2}\n .report-intro{break-after:page;page-break-after:always}
+ .front{margin:0;break-before:page;page-break-before:always}
+ .front:first-of-type{break-before:auto;page-break-before:auto}
+ .front h2{font-size:15pt;color:#294b6b;background:#edf4fa;border-left:4px solid #6fa6d5;padding:11px 14px;margin:0 0 14px;border-radius:3px}
+ .front table{break-inside:auto}
+ .front tr{break-inside:avoid;page-break-inside:avoid}
+ table{width:100%;border-collapse:collapse;font-size:8.5pt}
+ th{background:#294b6b;color:#fff;text-align:left;font-weight:700}
+ th,td{border:1px solid #dce5ed;padding:7px 8px;vertical-align:top}
+ tbody tr:nth-child(even){background:#f8fbfe}
+ .status{display:inline-block;font-weight:700;font-size:8pt;padding:3px 7px;border-radius:20px;white-space:nowrap}
+ .status.yes{color:#276747;background:#e7f4ec}.status.no{color:#5e6b78;background:#eef1f4}
+ .status.confirm{color:#8a6422;background:#fff3d9}.status.pending{color:#667788;background:#f0f3f6}
+ .general{border:1px solid #dce5ed;border-radius:8px;padding:12px;background:#f8fbfe;white-space:normal;min-height:42px}
+ footer{margin-top:25px;padding-top:9px;border-top:1px solid #dce5ed;color:#82909c;font-size:8pt;display:flex;justify-content:space-between}
+ @media print{header,.front h2,th,.status{print-color-adjust:exact;-webkit-print-color-adjust:exact}tr{break-inside:avoid}thead{display:table-header-group}}
+ </style></head><body>
+ <header><p class="eyebrow">P2 - PLANEJAMENTO</p><h1>Checklist Escopo Projeto</h1><p class="subtitle">Avaliação inicial de escopo</p></header>
+ <section class="report-intro"><div class="meta"><div><small>Projeto</small><strong>${escHtml(t.project||'Não informado')}</strong></div><div><small>Líder</small><strong>${escHtml(t.owner||'Não informado')}</strong></div><div><small>Data de avaliação</small><strong>${fmtDate(t.manager)}</strong></div></div>
+ <h2 class="section-title">Resumo da avaliação</h2>
+ <div class="summary"><div><small>Previsto</small><strong>${counts.yes}</strong></div><div><small>Não previsto</small><strong>${counts.no}</strong></div><div><small>A confirmar</small><strong>${counts.confirm}</strong></div><div><small>Não avaliado</small><strong>${counts.pending}</strong></div></div></section>
+ ${grouped}
+ <section class="front"><h2>Pontos gerais levantados / próximos assuntos a validar</h2><div class="general">${t.notes?escHtml(t.notes):'Nenhum ponto geral registrado.'}</div></section>
+ <footer><span>Relatório gerado em ${new Date().toLocaleString('pt-BR')}</span></footer>
+ <scr`+`ipt>window.addEventListener('load',()=>setTimeout(()=>window.print(),350));</scr`+`ipt></body></html>`;
+ const w=window.open('','_blank');if(!w){alert('O navegador bloqueou a abertura do relatório. Permita pop-ups para este arquivo e tente novamente.');return}
+ w.document.open();w.document.write(report);w.document.close();
+}
+const brainPalette=['#dca9f4','#ffd27d','#aebcf8','#eea0cb','#a9e3c4','#f3b6a6','#b7dce8'];
+function ensureBrainData(){
+ db.brainstorm=db.brainstorm||{teams:[{id:'team_moldes',name:'Moldes',color:brainPalette[0]},{id:'team_qualidade',name:'Qualidade',color:brainPalette[1]},{id:'team_processo',name:'Processo',color:brainPalette[2]},{id:'team_produto',name:'Produto',color:brainPalette[3]},{id:'team_automacao',name:'Automação',color:brainPalette[4]}],months:[],cards:[],risks:[]};
+ db.brainstorm.teams=db.brainstorm.teams||[];db.brainstorm.months=db.brainstorm.months||[];db.brainstorm.cards=db.brainstorm.cards||[];db.brainstorm.risks=db.brainstorm.risks||[];
+}
+function addBrainTeam(){
+ ensureBrainData();const name=prompt('Nome do time ou área:');if(!name||!name.trim())return;
+ if(db.brainstorm.teams.some(t=>t.name.toLowerCase()===name.trim().toLowerCase())){alert('Esse time já está cadastrado.');return;}
+ const color=brainPalette[db.brainstorm.teams.length%brainPalette.length];
+ db.brainstorm.teams.push({id:'bt_'+uid(),name:name.trim(),color});saveDB();renderBrainstorm();
+}
+function openBrainCard(teamId,id=''){
+ ensureBrainData();const c=id?db.brainstorm.cards.find(x=>x.id===id):null;
+ document.getElementById('brainCardId').value=c?.id||'';
+ document.getElementById('brainCardTeamId').value=teamId||c?.teamId||'';
+ document.getElementById('brainCardActivity').value=c?.title||'';
+ document.getElementById('brainCardExecutor').value=c?.executor||'';
+ document.getElementById('brainCardDays').value=c?.workDays??'';
+ document.getElementById('brainCardHours').value=c?.workHours??'';
+ document.getElementById('brainCardDescription').value=c?.description||'';
+ document.getElementById('brainCardDialogTitle').textContent=c?'Editar atividade':'Nova atividade';
+ document.getElementById('brainCardDialog').showModal();
+}
+function saveBrainCard(e){
+ e.preventDefault();const id=document.getElementById('brainCardId').value;
+ const teamId=document.getElementById('brainCardTeamId').value;
+ const title=document.getElementById('brainCardActivity').value.trim();if(!title)return;
+ const data={title,teamId,executor:document.getElementById('brainCardExecutor').value.trim(),workDays:document.getElementById('brainCardDays').value,workHours:document.getElementById('brainCardHours').value,description:document.getElementById('brainCardDescription').value.trim()};
+ if(id){const c=db.brainstorm.cards.find(x=>x.id===id);if(c)Object.assign(c,data);}
+ else db.brainstorm.cards.push({id:'bc_'+uid(),...data,monthId:''});
+ saveDB();document.getElementById('brainCardDialog').close();renderBrainstorm();
+}
+function addBrainActivity(teamId){openBrainCard(teamId)}
+function editBrainCard(id){const c=db.brainstorm.cards.find(x=>x.id===id);if(c)openBrainCard(c.teamId,id)}
+function deleteBrainCard(id){
+ if(!confirm('Excluir este card?'))return;
+ db.brainstorm.cards=db.brainstorm.cards.filter(c=>c.id!==id);saveDB();renderBrainstorm();
+}
+function addBrainMonth(){
+ ensureBrainData();const input=document.getElementById('brainMonthInput'),value=input.value;if(!value){alert('Selecione um mês.');return;}
+ if(db.brainstorm.months.some(m=>m.value===value)){alert('Esse mês já está no Kanban.');return;}
+ db.brainstorm.months.push({id:'bm_'+uid(),value});db.brainstorm.months.sort((a,b)=>a.value.localeCompare(b.value));input.value='';saveDB();renderBrainstorm();
+}
+function removeBrainMonth(id){
+ const m=db.brainstorm.months.find(x=>x.id===id);if(!m)return;
+ if(!confirm('Remover este mês? Os cards voltarão para o mapeamento de atividades.'))return;
+ db.brainstorm.cards.forEach(c=>{if(c.monthId===id)c.monthId='';});
+ db.brainstorm.months=db.brainstorm.months.filter(x=>x.id!==id);saveDB();renderBrainstorm();
+}
+function chooseBrainMonth(id){
+ ensureBrainData();
+ const c=db.brainstorm.cards.find(x=>x.id===id);if(!c)return;
+ if(!db.brainstorm.months.length){alert('Adicione um mês ao Kanban primeiro.');return;}
+ const options=['0. Voltar ao mapeamento',...db.brainstorm.months.map((m,i)=>{
+  const label=new Date(m.value+'-15T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  return `${i+1}. ${label.charAt(0).toUpperCase()+label.slice(1)}`;
+ })].join('\n');
+ const answer=prompt('Para qual mês deseja mover este cartão?\n'+options,'1');
+ if(answer===null)return;
+ const n=Number(answer);
+ if(!Number.isInteger(n)||n<0||n>db.brainstorm.months.length){alert('Escolha um número válido.');return;}
+ moveBrainCard(id,n===0?'':db.brainstorm.months[n-1].id);
+}
+function moveBrainCard(id,monthId){
+ const c=db.brainstorm.cards.find(x=>x.id===id);if(!c)return;c.monthId=monthId||'';saveDB();renderBrainstorm();
+}
+function brainDragStart(ev,id){ev.dataTransfer.setData('text/plain',id);ev.dataTransfer.effectAllowed='move';}
+function brainAllowDrop(ev){ev.preventDefault();ev.dataTransfer.dropEffect='move';ev.currentTarget.classList.add('drag-over');}
+function brainLeaveDrop(ev){ev.currentTarget.classList.remove('drag-over');}
+function brainDrop(ev,monthId){
+ ev.preventDefault();ev.currentTarget.classList.remove('drag-over');const id=ev.dataTransfer.getData('text/plain');if(id)moveBrainCard(id,monthId);
+}
+function brainCardHtml(c){
+ const team=db.brainstorm.teams.find(t=>t.id===c.teamId);
+ return `<article class="brain-card" draggable="true" ondragstart="brainDragStart(event,'${esc(c.id)}')" style="border-left-color:${team?.color||'#8bbce8'}"><strong>${esc(c.title)}</strong><div class="brain-card-meta">${c.executor?`<span><b>Executor:</b> ${esc(c.executor)}</span>`:''}${c.workDays!==''&&c.workDays!=null?`<span><b>Dias:</b> ${esc(c.workDays)}</span>`:''}${c.workHours!==''&&c.workHours!=null?`<span><b>Horas:</b> ${esc(c.workHours)}h</span>`:''}</div>${c.description?`<p>${esc(c.description)}</p>`:''}<div class="brain-card-actions"><button class="secondary" onclick="chooseBrainMonth('${esc(c.id)}')">Mover para mês</button><button class="ghost" onclick="editBrainCard('${esc(c.id)}')">Editar</button><button class="ghost" onclick="deleteBrainCard('${esc(c.id)}')">Excluir</button></div></article>`;
+}
+function renderBrainstorm(){
+ ensureBrainData();
+ const teams=db.brainstorm.teams,cards=db.brainstorm.cards,months=db.brainstorm.months;
+ document.getElementById('brainTeams').innerHTML=teams.map(t=>{
+  const list=cards.filter(c=>c.teamId===t.id&&!c.monthId);
+  return `<section class="brain-team"><div class="brain-team-title" style="background:${t.color}"><span>${esc(t.name)}</span><button class="ghost small" onclick="renameBrainTeam('${esc(t.id)}')">✎</button></div><div class="brain-team-body brain-dropzone" ondragover="brainAllowDrop(event)" ondragleave="brainLeaveDrop(event)" ondrop="brainDrop(event,'')">${list.map(brainCardHtml).join('')}<button class="secondary small brain-add-card" type="button" onclick="openBrainCard('${esc(t.id)}')">＋ Criar atividade neste time</button></div></section>`;
+ }).join('')||'<div class="empty">Cadastre um time ou área para começar.</div>';
+ document.getElementById('brainMonths').innerHTML=months.map(m=>{
+  const list=cards.filter(c=>c.monthId===m.id);
+  const label=new Date(m.value+'-15T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  return `<section class="brain-month"><div class="brain-month-title"><span>${esc(label.charAt(0).toUpperCase()+label.slice(1))}</span><button class="ghost small" onclick="removeBrainMonth('${esc(m.id)}')">×</button></div><div class="brain-month-body brain-dropzone" ondragover="brainAllowDrop(event)" ondragleave="brainLeaveDrop(event)" ondrop="brainDrop(event,'${esc(m.id)}')">${list.map(brainCardHtml).join('')||'<div class="brain-empty">Arraste atividades para este mês</div>'}</div></section>`;
+ }).join('')||'<div class="empty" style="min-width:100%">Adicione os meses que deseja utilizar no planejamento.</div>';
+ renderBrainRisks();
+}
+function openBrainRisk(id=''){
+ ensureBrainData();const r=id?db.brainstorm.risks.find(x=>x.id===id):null;
+ document.getElementById('brainRiskId').value=r?.id||'';
+ document.getElementById('brainRiskName').value=r?.name||'';
+ document.getElementById('brainRiskProbability').value=r?.probability||'Média';
+ document.getElementById('brainRiskImpact').value=r?.impact||'Médio';
+ document.getElementById('brainRiskResponse').value=r?.response||'';
+ document.getElementById('brainRiskOwner').value=r?.owner||'';
+ document.getElementById('brainRiskDialogTitle').textContent=r?'Editar risco':'Novo risco';
+ document.getElementById('brainRiskDialog').showModal();
+}
+function saveBrainRisk(e){
+ e.preventDefault();const id=document.getElementById('brainRiskId').value;
+ const data={name:document.getElementById('brainRiskName').value.trim(),probability:document.getElementById('brainRiskProbability').value,impact:document.getElementById('brainRiskImpact').value,response:document.getElementById('brainRiskResponse').value.trim(),owner:document.getElementById('brainRiskOwner').value.trim()};
+ if(id){const r=db.brainstorm.risks.find(x=>x.id===id);if(r)Object.assign(r,data);}else db.brainstorm.risks.push({id:'br_'+uid(),...data});
+ saveDB();document.getElementById('brainRiskDialog').close();renderBrainstorm();
+}
+function deleteBrainRisk(id){if(!confirm('Excluir este risco?'))return;db.brainstorm.risks=db.brainstorm.risks.filter(r=>r.id!==id);saveDB();renderBrainstorm();}
+function renderBrainRisks(){
+ const risks=db.brainstorm.risks||[];
+ document.getElementById('brainRisks').innerHTML=risks.length?risks.map(r=>`<article class="brain-risk"><strong>${esc(r.name)}</strong><div class="brain-risk-meta"><span>Probabilidade: ${esc(r.probability)}</span><span>Impacto: ${esc(r.impact)}</span></div>${r.response?`<p><b>Resposta:</b> ${esc(r.response)}</p>`:''}${r.owner?`<p><b>Responsável:</b> ${esc(r.owner)}</p>`:''}<div class="brain-card-actions"><button class="ghost" onclick="openBrainRisk('${esc(r.id)}')">Editar</button><button class="ghost" onclick="deleteBrainRisk('${esc(r.id)}')">Excluir</button></div></article>`).join(''):'<div class="empty">Nenhum risco mapeado. Clique em “Adicionar risco” para começar.</div>';
+}
+function generateBrainReport(){
+ ensureBrainData();
+ const teams=db.brainstorm.teams,cards=db.brainstorm.cards,months=db.brainstorm.months,risks=db.brainstorm.risks||[];
+ if(!cards.some(c=>c.monthId)&&!risks.length){alert('Adicione atividades ao Kanban mensal ou mapeie ao menos um risco antes de gerar o relatório.');return;}
+ const eh=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const monthLabel=m=>{const d=new Date(m.value+'-15T12:00:00');return d.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});};
+ const monthSections=months.map(m=>{
+  const list=cards.filter(c=>c.monthId===m.id);
+  const rows=list.map(c=>{const t=teams.find(x=>x.id===c.teamId);return `<tr><td><span class="dot" style="background:${t?.color||'#9bb7d4'}"></span>${eh(c.title)}</td><td>${eh(c.executor||'—')}</td><td>${c.workDays!==''&&c.workDays!=null?eh(c.workDays):'—'}</td><td>${c.workHours!==''&&c.workHours!=null?eh(c.workHours)+' h':'—'}</td><td>${eh(c.description||'—')}</td></tr>`;}).join('');
+  return `<section class="month"><h2>${eh(monthLabel(m))}</h2><table><thead><tr><th>Atividade</th><th>Executor</th><th>Dias</th><th>Horas</th><th>Observações</th></tr></thead><tbody>${rows||'<tr><td colspan="5">Nenhuma atividade planejada para este mês.</td></tr>'}</tbody></table></section>`;
+ }).join('');
+ const riskRows=risks.map(r=>`<tr><td>${eh(r.name)}</td><td>${eh(r.probability||'—')}</td><td>${eh(r.impact||'—')}</td><td>${eh(r.response||'—')}</td><td>${eh(r.owner||'—')}</td></tr>`).join('');
+ const report=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Planejamento mensal e mapeamento de riscos</title><style>
+ @page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#263746;font-size:9pt;margin:0}
+ header{background:#294b6b;color:#fff;padding:14px 18px;margin-bottom:14px}header p{font-size:8pt;letter-spacing:1px;margin:0 0 5px;color:#d9e8f6}h1{font-size:19pt;margin:0}
+ h2{font-size:11pt;color:#294b6b;border-left:5px solid #6fa6d5;padding:6px 9px;background:#eef4fa;margin:15px 0 7px}
+ table{width:100%;border-collapse:collapse;font-size:8pt}th{background:#294b6b;color:white;text-align:left}th,td{border:1px solid #d6e0e9;padding:6px 7px;vertical-align:top}tbody tr:nth-child(even){background:#f7fafd}
+ .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.month{break-inside:avoid;margin-bottom:10px}
+ footer{margin-top:16px;padding-top:7px;border-top:1px solid #d8e2eb;color:#82909c;font-size:8pt}
+ @media print{header,h2,th{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+ 
+
+/* Ações: painel de vencimentos e tabela de acompanhamento */
+.action-due-section{background:#fff9ed;border:1px solid #f0d7a7;border-radius:13px;padding:15px;margin-bottom:20px}
+.action-due-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;color:#805b20}
+.action-due-heading h3{margin:0;font-size:15px}.action-due-heading p{margin:3px 0 0;font-size:12px;color:#927849}.action-due-heading>strong{display:grid;place-items:center;min-width:30px;height:30px;padding:0 8px;border-radius:50%;background:#f5e4bd;color:#805b20}
+.action-due-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid #f1e4c9}.action-due-row>div{display:grid;gap:3px}.action-due-row small{color:#7c8792;font-size:11px}.action-notes{min-width:190px;min-height:42px;resize:vertical;font-size:12px;background:#fbfcfe}.action-table{min-width:1120px}.overdue-label,.today-label{font-size:11px;font-weight:750;white-space:nowrap;padding:4px 8px;border-radius:20px}.overdue-label{background:#fae3e1;color:#9a4943}.today-label{background:#fff0c9;color:#86611c}
+</style></head><body><header><p>P2 - PLANEJAMENTO</p><h1>Planejamento mensal e mapeamento de riscos</h1></header>
+ <h2>02 · Kanban mensal</h2>${monthSections||'<p>Nenhum mês foi definido no Kanban.</p>'}
+ <h2>03 · Mapeamento de riscos</h2><table><thead><tr><th>Risco identificado</th><th>Probabilidade</th><th>Impacto</th><th>Ação de prevenção / resposta</th><th>Responsável</th></tr></thead><tbody>${riskRows||'<tr><td colspan="5">Nenhum risco mapeado.</td></tr>'}</tbody></table>
+ <footer>Relatório gerado em ${new Date().toLocaleString('pt-BR')}</footer><script>window.addEventListener('load',()=>setTimeout(()=>window.print(),350));<\/script></body></html>`;
+ const w=window.open('','_blank');if(!w){alert('O navegador bloqueou a abertura do relatório. Permita pop-ups para este arquivo e tente novamente.');return;}w.document.open();w.document.write(report);w.document.close();
+}
+function renameBrainTeam(id){
+ const t=db.brainstorm.teams.find(x=>x.id===id);if(!t)return;
+ const name=prompt('Nome do time ou área:',t.name);if(!name||!name.trim())return;t.name=name.trim();saveDB();renderBrainstorm();
+}
+function exportBackup(){const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='PMO_TOOL_BOX_backup.json';a.click();URL.revokeObjectURL(a.href)}
+function importBackup(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x.notes)||!x.tap)throw new Error();db=x;saveDB();ensureFixedAgendas();renderAgendaSelectors();renderNotes();renderActions();if(document.getElementById('prepDate'))document.getElementById('prepDate').value=new Date().toISOString().slice(0,10);renderMeetingPrep();alert('Backup importado com sucesso.')}catch(err){alert('Não foi possível importar este arquivo de backup.')}e.target.value=''};r.readAsText(f)}
+ensureFixedAgendas();renderAgendaSelectors();renderNotes();renderActions();
+</script>
+</body></html>
