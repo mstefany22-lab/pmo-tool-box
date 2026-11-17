@@ -143,7 +143,7 @@ input,select,textarea{width:100%;border:1px solid var(--line);border-radius:9px;
 
 
 <section id="view-actions" class="view">
- <div class="headrow"><div><h2>Ações</h2><p class="sub">Acompanhe os encaminhamentos registrados nas atas de reunião, com responsáveis, prazos e situação.</p></div><button type="button" class="primary" onclick="exportPendingActionsPDF()">Exportar pendentes por responsável (PDF)</button></div>
+ <div class="headrow"><div><h2>Ações</h2><p class="sub">Acompanhe os encaminhamentos registrados nas atas de reunião, com responsáveis, prazos e situação.</p></div><button type="button" class="primary" onclick="exportPendingActionsPDF()">Exportar ações filtradas (PDF)</button></div>
  <div class="filters">
   <input id="actionSearch" placeholder="Buscar ação, responsável ou reunião..." oninput="renderActions()">
   <select id="actionStatusFilter" onchange="renderActions()" style="max-width:190px"><option value="">Todas as situações</option><option value="Pendente">Pendente</option><option value="Concluída">Concluída</option></select>
@@ -378,25 +378,56 @@ function updateActionNotes(key,value){
  saveDB();
 }
 function exportPendingActionsPDF(){
+ const q=(document.getElementById('actionSearch')?.value||'').toLowerCase();
+ const selectedStatus=document.getElementById('actionStatusFilter')?.value||'';
+ const selectedAgenda=document.getElementById('actionAgendaFilter')?.value||'';
  const selectedOwner=document.getElementById('actionOwnerFilter')?.value||'';
- const rows=[];
+ const selectedSubject=document.getElementById('actionSubjectFilter')?.value||'';
+ const weekFilter=document.getElementById('actionWeekFilter')?.value||'';
+ const localToday=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+ const today=localToday(),now=new Date();
+ const monday=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+ monday.setDate(monday.getDate()-(monday.getDay()+6)%7);
+ const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
+ const isoLocal=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+ const weekStart=isoLocal(monday),weekEnd=isoLocal(sunday),rows=[];
  (db.notes||[]).forEach(n=>(n.actionsList||[]).forEach((a,i)=>{
   const key=actionStatusKey(n.id,{...a,_index:i});
   const raw=(db.actionStatus||{})[key]||a.status||'Pendente';
-  if(raw==='Concluída')return;
+  const actionStatus=raw==='Concluída'?'Concluída':'Pendente';
   const responsible=String(a.responsible||'').trim()||'Sem responsável';
-  if(selectedOwner&&responsible!==selectedOwner)return;
   const subject=(n.discussionBlocks||[]).find(x=>String(x.id)===String(a.subjectId));
-  rows.push({...a,responsible,subjectTitle:subject?.title||'Sem assunto',noteTitle:n.title||'Ata sem título',meetingDate:n.date||''});
+  const subjectTitle=subject?.title||'';
+  const agendaId=n.agendaId||'';
+  const agendaName=db.agendas?.find(g=>String(g.id)===String(n.agendaId))?.name||'Sem agenda';
+  const row={...a,responsible,subjectTitle:subjectTitle||'Sem assunto',noteTitle:n.title||'Ata sem título',meetingDate:n.date||'',agendaId,agendaName,status:actionStatus};
+  if(selectedStatus&&actionStatus!==selectedStatus)return;
+  if(selectedAgenda&&agendaId!==selectedAgenda)return;
+  if(selectedOwner&&responsible!==selectedOwner)return;
+  if(selectedSubject&&subjectTitle!==selectedSubject)return;
+  if(weekFilter&&!(actionStatus==='Pendente'&&a.deadline&&a.deadline>=weekStart&&a.deadline<=weekEnd))return;
+  if(![a.description,responsible,subjectTitle,row.noteTitle,a.notes].join(' ').toLowerCase().includes(q))return;
+  rows.push(row);
  }));
- if(!rows.length){alert(selectedOwner?'Não há ações pendentes para o responsável selecionado.':'Não há ações pendentes para exportar.');return;}
+ if(!rows.length){alert('Não há ações que correspondam aos filtros selecionados.');return;}
+ const isOpen=a=>a.status!=='Concluída';
+ const overdue=rows.filter(a=>a.deadline&&a.deadline<today&&isOpen(a));
+ const dueToday=rows.filter(a=>a.deadline===today&&isOpen(a));
+ const indicators={total:rows.length,open:rows.filter(isOpen).length,done:rows.filter(a=>a.status==='Concluída').length,due:overdue.length+dueToday.length};
  const escHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const groups=[...new Set(rows.map(a=>a.responsible))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
- const sections=groups.map(owner=>{const list=rows.filter(a=>a.responsible===owner).sort((a,b)=>(a.meetingDate||'9999-12-31').localeCompare(b.meetingDate||'9999-12-31')||(a.deadline||'9999-12-31').localeCompare(b.deadline||'9999-12-31'));return `<section class="owner"><h2>${escHtml(owner)} <small>${list.length} ${list.length===1?'ação pendente':'ações pendentes'}</small></h2><table><thead><tr><th>Ação</th><th>Assunto</th><th>Prazo</th><th>Reunião de origem</th><th>Data da reunião</th></tr></thead><tbody>${list.map(a=>`<tr><td><strong>${escHtml(a.description||'Ação sem descrição')}</strong></td><td>${escHtml(a.subjectTitle)}</td><td>${a.deadline?new Date(a.deadline+'T12:00:00').toLocaleDateString('pt-BR'):'Não definido'}</td><td>${escHtml(a.noteTitle)}</td><td>${a.meetingDate?new Date(a.meetingDate+'T12:00:00').toLocaleDateString('pt-BR'):'Não informada'}</td></tr>`).join('')}</tbody></table></section>`}).join('');
- const title=selectedOwner?`Ações pendentes · ${selectedOwner}`:'Ações pendentes por responsável';
- const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${escHtml(title)}</title><style>@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box}body{font:10pt Arial,sans-serif;color:#263746;margin:0;line-height:1.4}header{background:#294b6b;color:white;padding:18px 20px;margin-bottom:18px}header h1{font-size:18pt;margin:0 0 5px}header p{margin:0;color:#e2edf7;font-size:9pt}.owner{margin:0 0 18px;break-inside:avoid}.owner h2{font-size:12pt;color:#294b6b;border-bottom:2px solid #8db5d8;padding:0 0 7px;margin:0 0 8px}.owner h2 small{font-size:9pt;font-weight:400;color:#687b8d;margin-left:8px}table{width:100%;border-collapse:collapse;font-size:8.5pt}th{background:#eaf1f7;color:#294b6b;text-align:left}th,td{border:1px solid #d8e2eb;padding:7px;vertical-align:top}tbody tr:nth-child(even){background:#f8fafc}footer{margin-top:20px;border-top:1px solid #d8e2eb;padding-top:8px;color:#758596;font-size:8pt}@media print{header,th{print-color-adjust:exact;-webkit-print-color-adjust:exact}tr{break-inside:avoid}}</style></head><body><header><h1>${escHtml(title)}</h1><p>Relatório de acompanhamento · ${new Date().toLocaleDateString('pt-BR')}</p></header>${sections}<footer>Total: ${rows.length} ações pendentes · Gerado em ${new Date().toLocaleString('pt-BR')}</footer><script>window.addEventListener('load',()=>setTimeout(()=>window.print(),350));<\/script></body></html>`;
+ const sections=groups.map(owner=>{
+  const list=rows.filter(a=>a.responsible===owner).sort((a,b)=>(a.meetingDate||'9999-12-31').localeCompare(b.meetingDate||'9999-12-31')||(a.deadline||'9999-12-31').localeCompare(b.deadline||'9999-12-31'));
+  return '<section class="owner"><h2>'+escHtml(owner)+' <small>'+list.length+' '+(list.length===1?'ação':'ações')+'</small></h2><table><thead><tr><th>Ação</th><th>Assunto</th><th>Agenda</th><th>Prazo</th><th>Reunião de origem</th><th>Data da reunião</th><th>Situação</th></tr></thead><tbody>'+
+   list.map(a=>'<tr><td><strong>'+escHtml(a.description||'Ação sem descrição')+'</strong>'+(a.notes?'<div class="note">'+escHtml(a.notes)+'</div>':'')+'</td><td>'+escHtml(a.subjectTitle)+'</td><td>'+escHtml(a.agendaName)+'</td><td>'+(a.deadline?new Date(a.deadline+'T12:00:00').toLocaleDateString('pt-BR'):'Não definido')+'</td><td>'+escHtml(a.noteTitle)+'</td><td>'+(a.meetingDate?new Date(a.meetingDate+'T12:00:00').toLocaleDateString('pt-BR'):'Não informada')+'</td><td>'+escHtml(a.status)+'</td></tr>').join('')+
+   '</tbody></table></section>';
+ }).join('');
+ const activeFilters=[selectedStatus&&'Situação: '+selectedStatus,selectedAgenda&&'Agenda: '+(db.agendas?.find(g=>String(g.id)===selectedAgenda)?.name||selectedAgenda),selectedOwner&&'Responsável: '+selectedOwner,selectedSubject&&'Assunto: '+selectedSubject,weekFilter&&'Prazo: esta semana',q&&'Busca: '+q].filter(Boolean);
+ const title='Relatório de ações';
+ const html='<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>'+escHtml(title)+'</title><style>@page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}body{font:9pt Arial,sans-serif;color:#263746;margin:0;line-height:1.4}header{background:#294b6b;color:white;padding:16px 18px;margin-bottom:14px}header h1{font-size:17pt;margin:0 0 5px}header p{margin:0;color:#e2edf7;font-size:8.5pt}.indicators{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:0 0 14px}.indicator{border:1px solid #d8e2eb;border-radius:7px;padding:9px 11px;background:#f8fafc}.indicator strong{display:block;font-size:17pt;color:#294b6b}.indicator span{font-size:8pt;color:#687b8d}.filters{font-size:8pt;color:#536779;margin:0 0 13px}.owner{margin:0 0 16px;break-inside:avoid}.owner h2{font-size:11pt;color:#294b6b;border-bottom:2px solid #8db5d8;padding:0 0 6px;margin:0 0 7px}.owner h2 small{font-size:8pt;font-weight:400;color:#687b8d;margin-left:8px}table{width:100%;border-collapse:collapse;font-size:7.5pt}th{background:#eaf1f7;color:#294b6b;text-align:left}th,td{border:1px solid #d8e2eb;padding:6px;vertical-align:top}tbody tr:nth-child(even){background:#f8fafc}.note{margin-top:4px;color:#687b8d;font-size:7pt;white-space:pre-wrap}footer{margin-top:16px;border-top:1px solid #d8e2eb;padding-top:7px;color:#758596;font-size:8pt}@media print{header,th,.indicator{print-color-adjust:exact;-webkit-print-color-adjust:exact}tr{break-inside:avoid}}</style></head><body><header><h1>'+escHtml(title)+'</h1><p>Dados conforme filtros aplicados na aba Ações · Gerado em '+new Date().toLocaleString('pt-BR')+'</p></header><div class="indicators"><div class="indicator"><strong>'+indicators.total+'</strong><span>Total de ações filtradas</span></div><div class="indicator"><strong>'+indicators.open+'</strong><span>Em aberto</span></div><div class="indicator"><strong>'+indicators.done+'</strong><span>Concluídas</span></div><div class="indicator"><strong>'+indicators.due+'</strong><span>Atrasadas ou vencem hoje</span></div></div><div class="filters"><strong>Filtros aplicados:</strong> '+(activeFilters.length?escHtml(activeFilters.join(' · ')):'Nenhum — todas as ações')+'</div>'+sections+'<footer>Total de '+rows.length+' ações exportadas · '+groups.length+' responsáveis</footer><script>window.addEventListener("load",()=>setTimeout(()=>window.print(),350));<\/script></body></html>';
  const w=window.open('','_blank');if(!w){alert('O navegador bloqueou a abertura do relatório. Permita pop-ups para este arquivo e tente novamente.');return;}w.document.open();w.document.write(html);w.document.close();
 }
+
 function renderActions(){
  const all=[];
  (db.notes||[]).forEach(n=>(n.actionsList||[]).forEach((a,i)=>{
@@ -428,9 +459,9 @@ function renderActions(){
  const overdue=filtered.filter(a=>a.deadline&&a.deadline<today&&isOpen(a));
  const dueToday=filtered.filter(a=>a.deadline===today&&isOpen(a));
  const due=[...overdue,...dueToday];
- document.getElementById('actionTotal').textContent=all.length;
- document.getElementById('actionOpen').textContent=withStatus.filter(isOpen).length;
- document.getElementById('actionDone').textContent=withStatus.filter(a=>a.status==='Concluída').length;
+ document.getElementById('actionTotal').textContent=filtered.length;
+ document.getElementById('actionOpen').textContent=filtered.filter(isOpen).length;
+ document.getElementById('actionDone').textContent=filtered.filter(a=>a.status==='Concluída').length;
  document.getElementById('actionDueCount').textContent=due.length;
  const dueHtml=due.length?`<section class="action-due-section"><div class="action-due-heading"><div><h3>Vencem hoje ou estão atrasadas</h3><p>Ações abertas que precisam de acompanhamento</p></div><strong>${due.length}</strong></div>${due.map(a=>`<div class="action-due-row"><div><b>${esc(a.description||'Ação sem descrição')}</b><small>${esc(a.responsible||'Sem responsável')}</small></div><span class="${a.deadline<today?'overdue-label':'today-label'}">${a.deadline<today?'Atrasada':'Vence hoje'} · ${fmtNoteDate(a.deadline)}</span></div>`).join('')}</section>`:'';
  const table=filtered.length?`<div class="table-wrap"><table class="data-table action-table"><thead><tr><th>Ação / assunto</th><th>Agenda</th><th>Responsável</th><th>Prazo</th><th>Ata de origem</th><th>Situação</th><th>Anotações</th></tr></thead><tbody>${filtered.map(a=>`<tr class="${a.status==='Concluída'?'action-completed':''} ${a.deadline&&a.deadline<=today&&isOpen(a)?'action-overdue':''}"><td><strong>${esc(a.description||'Ação sem descrição')}</strong><div class="meta">${esc(a.subjectTitle||'Sem assunto vinculado')}</div></td><td>${esc(a.agendaName||'—')}</td><td>${esc(a.responsible||'—')}</td><td><input type="date" aria-label="Editar prazo da ação" value="${esc(a.deadline||'')}" onchange="updateActionDeadline('${esc(a.key)}',this.value)"></td><td>${esc(a.noteTitle)}<div class="meta">${fmtNoteDate(a.meetingDate)}</div></td><td><select aria-label="Situação da ação" onchange="updateActionStatus('${esc(a.key)}',this.value)">${['Pendente','Concluída'].map(v=>`<option ${a.status===v?'selected':''}>${v}</option>`).join('')}</select></td><td><textarea class="action-notes" rows="2" placeholder="Anotações..." aria-label="Anotações da ação" onchange="updateActionNotes('${esc(a.key)}',this.value)">${esc(a.notes||'')}</textarea></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">Nenhuma ação encontrada. Registre ações na aba “Ata Reuniões” para acompanhá-las aqui.</div>';
